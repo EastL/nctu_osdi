@@ -69,4 +69,4 @@ gdt:
 #       of each bit of GDT register.
 gdtdesc: 
 	.word 0x0800	# gdt limit
-	.word 0x7c00+512+gdt, 0x9	# gdt base
+	.word gdt, 0x0	# gdt base
