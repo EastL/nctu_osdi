@@ -3,6 +3,7 @@
 #include <inc/shell.h>
 #include <inc/timer.h>
 
+extern void settextcolor(unsigned char forecolor, unsigned char backcolor);
 //int __attribute__((section(".text"))) etext;
 struct Command {
 	const char *name;
@@ -14,10 +15,28 @@ struct Command {
 static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
-	{ "print_tick", "Display system tick", print_tick }
+	{ "print_tick", "Display system tick", print_tick },
+	{ "chgcolor", "Change text color", change_color }
 };
 #define NCOMMANDS (sizeof(commands)/sizeof(commands[0]))
 
+int change_color(int argc, char **argv)
+{
+	if (argc != 2)
+	{
+		cprintf("Please give one parameter.\n");
+		return 0;
+	}
+	short size = sizeof(argv[1]);
+	if (size != 4)
+	{
+		cprintf("Please give just one char\n");
+		return 0;
+	}
+	char buf = argv[1][0];
+	settextcolor(buf, 0);
+	return 0;
+}
 
 int mon_help(int argc, char **argv)
 {
@@ -38,7 +57,7 @@ int mon_kerninfo(int argc, char **argv)
    */
 	int size;
 	extern char stext, etext, start, end;
-	cprintf("Kernel code base start=%p size = %p \n", &stext, (&etext -&stext));
+	cprintf("Kernel code base start=%p size = %p \n", &stext, (&etext - &stext));
 	cprintf("Kernel data base start=%p size = %p \n", &start, (&end - &start));
 	return 0;
 }
