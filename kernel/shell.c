@@ -3,6 +3,7 @@
 #include <inc/shell.h>
 #include <inc/timer.h>
 
+//int __attribute__((section(".text"))) etext;
 struct Command {
 	const char *name;
 	const char *desc;
@@ -35,6 +36,10 @@ int mon_kerninfo(int argc, char **argv)
    *       Use PROVIDE inside linker script and calculate the
    *       offset.
    */
+	int size;
+	extern char stext, etext, start, end;
+	cprintf("Kernel code base start=%p size = %p \n", &stext, (&etext -&stext));
+	cprintf("Kernel data base start=%p size = %p \n", &start, (&end - &start));
 	return 0;
 }
 int print_tick(int argc, char **argv)
