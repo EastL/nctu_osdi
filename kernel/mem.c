@@ -150,6 +150,8 @@ mem_init(void)
 	// Your code goes here:
     /* TODO */
 
+	pages = (struct PageInfo *) boot_alloc(npages * sizeof(struct PageInfo));
+ 	memset(pages, 0, npages * sizeof(struct PageInfo));
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
 	// up the list of free physical pages. Once we've done so, all further
@@ -197,6 +199,8 @@ mem_init(void)
 	// Your code goes here:
     /* TODO */
 
+	//////////////////////////////////////////////////////////////////////
+	// Map VA range [0, EXTPHYSMEM) to PA range [0, EXTPHYSMEM)
 	//////////////////////////////////////////////////////////////////////
 	// Map VA range [0, EXTPHYSMEM) to PA range [0, EXTPHYSMEM)
     boot_map_region(kern_pgdir, 0, ROUNDUP(EXTPHYSMEM, PGSIZE), 0, (PTE_W) | (PTE_P));
@@ -261,11 +265,19 @@ page_init(void)
 	
     /* TODO */
     size_t i;
+	uint32_t io_size = (EXTPHYSMEM - IOPHYSMEM) / PGSIZE;
+	uint32_t kernAndpage_size = (boot_alloc(0) - KERNBASE) / PGSIZE;
 	for (i = 0; i < npages; i++) {
-
-        pages[i].pp_ref = 0;
-        pages[i].pp_link = page_free_list;
-        page_free_list = &pages[i];
+		if (i == 0 /*Mark physical page 0 as in use.*/ || 
+			(i >= npages_basemem && i < npages_basemem + io_size) /*IO hole*/ ||
+			(i >= npages_basemem + io_size && i < npages_basemem + io_size + kernAndpage_size) /*kernel data and code and page*/ 
+			) {
+        	pages[i].pp_ref = 1;
+		} else {
+        	pages[i].pp_ref = 0;
+       		pages[i].pp_link = page_free_list;
+        	page_free_list = &pages[i];
+		}
     }
 }
 
@@ -804,8 +816,6 @@ check_page(void)
 	// free the pages we took
 	page_free(pp0);
 	page_free(pp1);
-	page_free(pp2);
-
 	cprintf("check_page() succeeded!\n");
 }
 
