@@ -302,10 +302,10 @@ page_alloc(int alloc_flags)
 	ret = page_free_list;
 	page_free_list = ret->pp_link;
 	ret->pp_link = NULL;
-	ret->pp_ref = 0;
 
 	if (alloc_flags & ALLOC_ZERO) 
 		memset(page2kva(ret), 0, PGSIZE);
+	return ret;
 }
 
 //
@@ -319,6 +319,13 @@ page_free(struct PageInfo *pp)
 	// Hint: You may want to panic if pp->pp_ref is nonzero or
 	// pp->pp_link is not NULL.
     /* TODO */
+	if (pp->pp_ref != 0)
+		panic("there is not a free page!");
+	if (pp->pp_link != NULL)
+		panic("next free doesn't clear!");
+
+	pp->pp_link = page_free_list;
+	page_free_list = pp;
 }
 
 //
