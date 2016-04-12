@@ -266,7 +266,7 @@ page_init(void)
     /* TODO */
     size_t i;
 	uint32_t io_size = (EXTPHYSMEM - IOPHYSMEM) / PGSIZE;
-	uint32_t kernAndpage_size = (boot_alloc(0) - KERNBASE) / PGSIZE;
+	uint32_t kernAndpage_size = ((uint32_t) boot_alloc(0) - KERNBASE) / PGSIZE;
 	for (i = 0; i < npages; i++) {
 		if (i == 0 /*Mark physical page 0 as in use.*/ || 
 			(i >= npages_basemem && i < npages_basemem + io_size) /*IO hole*/ ||
