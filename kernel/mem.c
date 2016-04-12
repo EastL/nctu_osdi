@@ -201,8 +201,6 @@ mem_init(void)
 
 	//////////////////////////////////////////////////////////////////////
 	// Map VA range [0, EXTPHYSMEM) to PA range [0, EXTPHYSMEM)
-	//////////////////////////////////////////////////////////////////////
-	// Map VA range [0, EXTPHYSMEM) to PA range [0, EXTPHYSMEM)
     boot_map_region(kern_pgdir, 0, ROUNDUP(EXTPHYSMEM, PGSIZE), 0, (PTE_W) | (PTE_P));
 
 	// Check that the initial page directory has been set up correctly.
@@ -297,6 +295,17 @@ struct PageInfo *
 page_alloc(int alloc_flags)
 {
     /* TODO */
+	struct PageInfo *ret;
+	if (page_free_list == NULL)
+		return NULL;
+
+	ret = page_free_list;
+	page_free_list = ret->pp_link;
+	ret->pp_link = NULL;
+	ret->pp_ref = 0;
+
+	if (alloc_flags & ALLOC_ZERO) 
+		memset(page2kva(ret), 0, PGSIZE);
 }
 
 //
@@ -350,6 +359,24 @@ pgdir_walk(pde_t *pgdir, const void *va, int create)
 {
 	// Fill this function in
     /* TODO */
+	struct PageInfo *new_page;
+	pte_t *pte, *pte_base;
+	pde_t *pde;
+	pde = &pgdir[PDX(va)];
+	if (!(*pde & PTE_P) && !create) {
+		return NULL;
+	} else if (!(*pde & PTE_P) && create) {
+		new_page = page_alloc(1);
+
+		if (!new_page)
+			return NULL;
+
+		new_page->pp_ref += 1;
+		*pde = (page2pa(new_page) | PTE_P | PTE_U | PTE_W);
+	}
+
+	pte_base = KADDR(PTE_ADDR(*pde));
+	return &pte_base[PTX(va)];
 }
 
 //
@@ -367,6 +394,13 @@ static void
 boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm)
 {
     /* TODO */
+	pte_t *pte;
+	size_t va_index, pa_index;
+
+	for (va_index = va, pa_index = pa; va_index < va + size * PGSIZE; va_index += PGSIZE, pa_index += PGSIZE) {
+		pte = pgdir_walk(pgdir, va, 1);
+		*pte = (pa_index | perm | PTE_P);
+	}
 }
 
 //
@@ -816,6 +850,8 @@ check_page(void)
 	// free the pages we took
 	page_free(pp0);
 	page_free(pp1);
+	page_free(pp2);
+
 	cprintf("check_page() succeeded!\n");
 }
 
