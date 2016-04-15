@@ -367,7 +367,8 @@ pgdir_walk(pde_t *pgdir, const void *va, int create)
 	// Fill this function in
     /* TODO */
 	struct PageInfo *new_page;
-	pte_t *pte, *pte_base;
+	pte_t *pte;
+	pte_t *pte_base;
 	pde_t *pde;
 	pde = &pgdir[PDX(va)];
 	if (!(*pde & PTE_P) && !create) {
@@ -439,6 +440,18 @@ int
 page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 {
     /* TODO */
+	pte_t *pte;
+	pte = pgdir_walk(pgdir, va, true);
+
+	if (pte == NULL)
+		return -E_NO_MEM;
+
+	pp->pp_ref += 1;
+	if (*pte)
+		page_remove(pgdir, va);
+
+	*pte = (page2pa(pp) | perm | PTE_P);
+	return 0;
 }
 
 //
@@ -456,6 +469,20 @@ struct PageInfo *
 page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 {
     /* TODO */
+	pte_t *pte = pgdir_walk(pgdir, va, false);
+	if (pte == NULL) {
+		return NULL;
+	}
+
+	if (*pte == NULL)
+		return NULL;
+
+	if (*pte_store)
+		*pte_store = pte;
+	
+	int page_address = PTE_ADDR(*pte);
+
+	return pa2page(page_address);
 }
 
 //
@@ -477,6 +504,17 @@ void
 page_remove(pde_t *pgdir, void *va)
 {
     /* TODO */
+	pte_t *pte; 
+	struct PageInfo *page;  
+
+	page = page_lookup(pgdir, va, &pte);
+	if (*pte == NULL)
+		return;
+
+	page_decref(page);
+	tlb_invalidate(pgdir, va);
+	*pte = NULL;
+
 }
 
 //
@@ -762,6 +800,7 @@ check_page(void)
 	// should be able to map pp2 at PGSIZE because it's already there
 	assert(page_insert(kern_pgdir, pp2, (void*) PGSIZE, PTE_W) == 0);
 	assert(check_va2pa(kern_pgdir, PGSIZE) == page2pa(pp2));
+	cprintf("\n%d", pp2->pp_ref);
 	assert(pp2->pp_ref == 1);
 
 	// pp2 should NOT be on the free list
