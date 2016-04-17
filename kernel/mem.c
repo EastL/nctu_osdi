@@ -95,8 +95,6 @@ boot_alloc(uint32_t n)
 	// Allocate a chunk large enough to hold 'n' bytes, then update
 	// nextfree.  Make sure nextfree is kept aligned
 	// to a multiple of PGSIZE.
-	//
-	// LAB 2: Your code here.
     if (n == 0)
         return nextfree;
     else if (n > 0)
@@ -202,8 +200,8 @@ mem_init(void)
 	boot_map_region(kern_pgdir, KERNBASE , 0x0fffffff , 0,  (PTE_W) | (PTE_P));
 
 	//////////////////////////////////////////////////////////////////////
-	// Map VA range [0, EXTPHYSMEM) to PA range [0, EXTPHYSMEM)
-	boot_map_region(kern_pgdir, 0, ROUNDUP(EXTPHYSMEM, PGSIZE), 0, (PTE_W) | (PTE_P));
+	// Map VA range [IOPHYSMEM, EXTPHYSMEM) to PA range [IOPHYSMEM, EXTPHYSMEM)
+    boot_map_region(kern_pgdir, IOPHYSMEM, ROUNDUP((EXTPHYSMEM - IOPHYSMEM), PGSIZE), IOPHYSMEM, (PTE_W) | (PTE_P));
 
 	// Check that the initial page directory has been set up correctly.
 	check_kern_pgdir();
@@ -693,7 +691,7 @@ check_kern_pgdir(void)
 	pgdir = kern_pgdir;
 
     // check IO mem
-    for (i = 0; i < ROUNDUP(IOPHYSMEM, PGSIZE); i += PGSIZE)
+    for (i = IOPHYSMEM; i < ROUNDUP(EXTPHYSMEM, PGSIZE); i += PGSIZE)
 		assert(check_va2pa(pgdir, i) == i);
 
 	// check pages array
@@ -713,7 +711,7 @@ check_kern_pgdir(void)
 	// check PDE permissions
 	for (i = 0; i < NPDENTRIES; i++) {
 		switch (i) {
-        case 0: // For I/O
+        case PDX(IOPHYSMEM):
 		case PDX(UVPT):
 		case PDX(KSTACKTOP-1):
 		case PDX(UPAGES):
