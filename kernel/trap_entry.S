@@ -1,6 +1,14 @@
 #include <inc/mmu.h>
 #include <inc/trap.h>
 
+#define TRAPHANDLER(name, num)					\
+	.globl name;							\
+	.type name, @function;						\
+	.align 2;							\
+	name:								\
+	pushl $(num);							\
+	jmp _alltraps
+
 /* Use TRAPHANDLER_NOEC for traps where the CPU doesn't push an error code.
  * It pushes a 0 in place of the error code, so the trap frame has the same
  * format in either case.
@@ -25,6 +33,7 @@
 
 	TRAPHANDLER_NOEC(irq_timer, IRQ_OFFSET+IRQ_TIMER);
 	TRAPHANDLER_NOEC(irq_kbd, IRQ_OFFSET+IRQ_KBD);
+	TRAPHANDLER(t_pgflt, T_PGFLT);
 
 .globl default_trap_handler;
 _alltraps:

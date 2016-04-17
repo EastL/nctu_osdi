@@ -121,13 +121,18 @@ trap_dispatch(struct Trapframe *tf)
    *       We prepared the keyboard handler and timer handler for you
    *       already. Please reference in kernel/kbd.c and kernel/timer.c
    */
+	
 	if(tf->tf_trapno == IRQ_OFFSET + IRQ_KBD)
 		kbd_intr();
 	else if (tf->tf_trapno == IRQ_OFFSET + IRQ_TIMER)
 		timer_handler();
+	else if (tf->tf_trapno == T_PGFLT) {
+		cprintf("[B042005] Page Fault @ 0x%x\n", rcr2());
+		while(1);
+	}
 
 	// Unexpected trap: The user process or the kernel has a bug.
-	//print_trapframe(tf);
+	print_trapframe(tf);
 }
 
 /* 
@@ -170,10 +175,13 @@ void trap_init()
 
 	extern void irq_timer();	
 	extern void irq_kbd();
+	extern void t_pgflt();
 	/* Keyboard interrupt setup */
 	SETGATE(idt[IRQ_OFFSET+IRQ_TIMER], 0, GD_KT, irq_timer, 0);
 	/* Timer Trap setup */
 	SETGATE(idt[IRQ_OFFSET+IRQ_KBD], 0, GD_KT, irq_kbd, 0);
+	/* page fault handler */
+	SETGATE(idt[T_PGFLT], 0, GD_KT, t_pgflt, 0);
   /* Load IDT */
 	lidt(&idt_pd);
 }
