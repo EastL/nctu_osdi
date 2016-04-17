@@ -174,7 +174,7 @@ mem_init(void)
 	//      (ie. perm = PTE_U | PTE_P)
 	//    - pages itself -- kernel RW, user NONE
 	// Your code goes here:
-    boot_map_region(kern_pgdir, UPAGES, ROUNDUP((sizeof(struct PageInfo) * npages), PGSIZE), PADDR(pages), (PTE_U | PTE_P));
+	boot_map_region(kern_pgdir, UPAGES, ROUNDUP((sizeof(struct PageInfo) * npages), PGSIZE), PADDR(pages), (PTE_U | PTE_P));
 
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
@@ -188,6 +188,7 @@ mem_init(void)
 	//     Permissions: kernel RW, user NONE
 	// Your code goes here:
     /* TODO */
+	boot_map_region(kern_pgdir, KSTACKTOP - KSTKSIZE, KSTKSIZE, PADDR(bootstack), (PTE_W) | (PTE_P));
 
 	//////////////////////////////////////////////////////////////////////
 	// Map all of physical memory at KERNBASE.
@@ -198,10 +199,11 @@ mem_init(void)
 	// Permissions: kernel RW, user NONE
 	// Your code goes here:
     /* TODO */
+	boot_map_region(kern_pgdir, KERNBASE , 0x0fffffff , 0,  (PTE_W) | (PTE_P));
 
 	//////////////////////////////////////////////////////////////////////
 	// Map VA range [0, EXTPHYSMEM) to PA range [0, EXTPHYSMEM)
-    boot_map_region(kern_pgdir, 0, ROUNDUP(EXTPHYSMEM, PGSIZE), 0, (PTE_W) | (PTE_P));
+	boot_map_region(kern_pgdir, 0, ROUNDUP(EXTPHYSMEM, PGSIZE), 0, (PTE_W) | (PTE_P));
 
 	// Check that the initial page directory has been set up correctly.
 	check_kern_pgdir();
@@ -270,13 +272,13 @@ page_init(void)
 			(i >= npages_basemem && i < npages_basemem + io_size) /*IO hole*/ ||
 			(i >= npages_basemem + io_size && i < npages_basemem + io_size + kernAndpage_size) /*kernel data and code and page*/ 
 			) {
-        	pages[i].pp_ref = 1;
+			pages[i].pp_ref = 1;
 		} else {
-        	pages[i].pp_ref = 0;
-       		pages[i].pp_link = page_free_list;
-        	page_free_list = &pages[i];
+			pages[i].pp_ref = 0;
+			pages[i].pp_link = page_free_list;
+			page_free_list = &pages[i];
 		}
-    }
+	}
 }
 
 //
@@ -405,8 +407,10 @@ boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm
 	pte_t *pte;
 	size_t va_index, pa_index;
 
-	for (va_index = va, pa_index = pa; va_index < va + size * PGSIZE; va_index += PGSIZE, pa_index += PGSIZE) {
-		pte = pgdir_walk(pgdir, va, 1);
+	for (va_index = va, pa_index = pa; va_index < va + size; va_index += PGSIZE, pa_index += PGSIZE) {
+		if (va_index == 0xffffffff - PGSIZE + 1)
+			break;
+		pte = pgdir_walk(pgdir, va_index, 1);
 		*pte = (pa_index | perm | PTE_P);
 	}
 }
@@ -800,7 +804,6 @@ check_page(void)
 	// should be able to map pp2 at PGSIZE because it's already there
 	assert(page_insert(kern_pgdir, pp2, (void*) PGSIZE, PTE_W) == 0);
 	assert(check_va2pa(kern_pgdir, PGSIZE) == page2pa(pp2));
-	cprintf("\n%d", pp2->pp_ref);
 	assert(pp2->pp_ref == 1);
 
 	// pp2 should NOT be on the free list
