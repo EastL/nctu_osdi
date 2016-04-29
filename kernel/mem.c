@@ -572,14 +572,17 @@ setupkvm()
 }
 
 
-// HINT: This is the system call implementation of get_num_free_page
+/* TODO: Lab 5
+ * Please maintain num_free_pages yourself
+ */
+/* This is the system call implementation of get_num_free_page */
 int32_t
 sys_get_num_free_page(void)
 {
   return num_free_pages;
 }
 
-// HINT: This is the system call implementation of get_num_used_page
+/* This is the system call implementation of get_num_used_page */
 int32_t
 sys_get_num_used_page(void)
 {
