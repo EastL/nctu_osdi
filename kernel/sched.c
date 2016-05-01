@@ -23,4 +23,21 @@ void sched_yield(void)
 {
 	extern Task tasks[];
 	extern Task *cur_task;
+	Task *t;
+
+	int task_index = cur_task ? (cur_task->task_id) : 0;
+	int index;
+
+	for (index = 0; index < NR_TASKS; index++)
+	{
+		if (tasks[(task_index+1) % NR_TASKS].state == TASK_RUNNABLE)
+		{
+			t = &tasks[(task_index+1) % NR_TASKS];
+			t->state = TASK_RUNNING;
+			cur_task = t;
+			lcr3(PADDR(t->pgdir));
+			ctx_switch(t);
+		}
+	}
+	
 }
