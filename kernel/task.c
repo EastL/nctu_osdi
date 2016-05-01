@@ -159,6 +159,22 @@ int task_create()
  */
 static void task_free(int pid)
 {
+	//use kernel pgdir
+	lcr3(PADDR(kern_pgdir));
+
+	//find task
+	Task t;
+	int i;
+	for (i = 0; i < NR_TASKS; i++)
+		if (pid == tasks[i].task_id)
+			t = tasks[i];
+
+	//remove user stack
+	for (i = 1; i < 11 ; i++)
+		page_remove(t.pgdir, (void *) (USTACKTOP-PGSIZE*i));
+
+	ptable_remove(t.pgdir);
+	pgdir_remove(t.pgdir);
 }
 
 void sys_kill(int pid)
@@ -170,6 +186,27 @@ void sys_kill(int pid)
    * Free the memory
    * and invoke the scheduler for yield
    */
+
+		//find task
+		Task t;
+		int i;
+		for (i = 0; i < NR_TASKS; i++)
+		{
+			if (pid == tasks[i].task_id)
+				t = tasks[i];
+		}
+
+		//change the state of tasks
+		t.state = TASK_FREE;
+		//free memory
+		task_free(pid);
+
+		//invoke yield
+		if (cur_task->task_id == pid)
+		{
+			cur_task = NULL;
+			sched_yield();
+		}
 	}
 }
 

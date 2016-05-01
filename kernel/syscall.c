@@ -46,6 +46,7 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
 		/* TODO: Lab 5
      * Get current task's pid
      */
+		retVal = cur_task->task_id;
 		break;
 
 	case SYS_sleep:
@@ -60,6 +61,7 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
      * Kill specific task
      * You can reference kernel/task.c, kernel/task.h
      */
+		sys_kill(cur_task->task_id);
 		break;
 
   case SYS_get_num_free_page:
@@ -108,8 +110,6 @@ static void syscall_handler(struct Trapframe *tf)
    */
 	struct PushRegs r = tf->tf_regs;
 	tf->tf_regs.reg_eax = do_syscall(r.reg_eax, r.reg_edx, r.reg_ecx, r.reg_ebx, r.reg_edi, r.reg_esi);
-	if(r.reg_eax != 0 && r.reg_eax != 1)
-		printk("syscall%d\n", r.reg_eax);
 }
 
 void syscall_init()

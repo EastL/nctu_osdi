@@ -82,7 +82,8 @@ int32_t get_num_free_page(void)
 int32_t getpid(void)
 {
 	int32_t ret_pid;
-	return ret_pid;
+	ret_pid = syscall(SYS_getpid, 0, 0, 0, 0, 0);
+	return (int32_t)ret_pid;
 }
 
 void kill_self()
