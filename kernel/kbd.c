@@ -231,5 +231,6 @@ int k_getc(void)
   // In lab4, our task is switched to user mode, so dont block at there
   //while ((c = cons_getc()) == 0)
   /* do nothing *///;
-  return cons_getc();
+	int a = cons_getc();
+  return a;
 }

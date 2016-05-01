@@ -16,7 +16,8 @@ void do_puts(char *str, uint32_t len)
 
 int32_t do_getc()
 {
-	return k_getc();
+	int a = k_getc();
+	return a;
 }
 
 int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
@@ -84,12 +85,14 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
 		/* TODO: Lab 5
      * You can reference kernel/screen.c
      */
+	sys_settextcolor((unsigned char)a1, (unsigned char)a2);
     break;
 
   case SYS_cls:
 		/* TODO: Lab 5
      * You can reference kernel/screen.c
      */
+	sys_cls();
     break;
 
 	}
@@ -103,7 +106,10 @@ static void syscall_handler(struct Trapframe *tf)
    * Please remember to fill in the return value
    * HINT: You have to know where to put the return value
    */
-
+	struct PushRegs r = tf->tf_regs;
+	tf->tf_regs.reg_eax = do_syscall(r.reg_eax, r.reg_edx, r.reg_ecx, r.reg_ebx, r.reg_edi, r.reg_esi);
+	if(r.reg_eax != 0 && r.reg_eax != 1)
+		printk("syscall%d\n", r.reg_eax);
 }
 
 void syscall_init()
@@ -112,6 +118,8 @@ void syscall_init()
    * Please set gate of system call into IDT
    * You can leverage the API register_handler in kernel/trap.c
    */
+	extern void SYS_Input();
+	register_handler(T_SYSCALL, syscall_handler, SYS_Input, 0, 3);
 
 }
 

@@ -569,6 +569,26 @@ setupvm(pde_t *pgdir, uint32_t start, uint32_t size)
 pde_t *
 setupkvm()
 {
+	struct PageInfo *newPage;
+	newPage = page_alloc(0);
+	if (newPage == NULL)
+		return NULL;
+
+	newPage->pp_ref++;
+
+	memset(page2kva(newPage), 0, PGSIZE);
+	
+	pde_t *pde;
+	pde = (pde_t *) page2kva(newPage);
+
+	int i;
+	//copy user pgdir
+	for (i = PDX(UTOP); i < 1024; i++)
+		pde[i] = kern_pgdir[i];
+
+	pde[0] = kern_pgdir[0]; // map IO
+
+	return pde;
 }
 
 

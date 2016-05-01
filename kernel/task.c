@@ -100,13 +100,30 @@ int task_create()
 	Task *ts = NULL;
 
 	/* Find a free task structure */
+	int i;
+	for (i = 0; i < NR_TASKS; i++) {
+		if (tasks[i].state == TASK_FREE) {
+			ts = &tasks[i];
+			break;
+		}
+
+		if (i == NR_TASKS - 1)
+			return -1;
+	}
 
   /* Setup Page Directory and pages for kernel*/
   if (!(ts->pgdir = setupkvm()))
     panic("Not enough memory for per process page directory!\n");
 
   /* Setup User Stack */
-
+	int insert, index;
+	struct PageInfo *newStack;
+	for (index = 1; index < 11; index++) {
+		newStack = page_alloc(0);
+		printk("alloc:%x\n", newStack);
+		insert = page_insert(ts->pgdir, newStack, (void *)(USTACKTOP-PGSIZE*index), (PTE_U | PTE_W));
+		printk("insert:%d\n", insert);
+	}
 	/* Setup Trapframe */
 	memset( &(ts->tf), 0, sizeof(ts->tf));
 
@@ -117,6 +134,9 @@ int task_create()
 	ts->tf.tf_esp = USTACKTOP-PGSIZE;
 
 	/* Setup task structure (task_id and parent_id) */
+	ts->task_id = i;
+	ts->parent_id = 0;
+	return i;
 }
 
 
@@ -245,6 +265,7 @@ void task_init()
 
 	// Load the TSS selector 
 	ltr(GD_TSS0);
+	printk("hey\n");
 
 	cur_task->state = TASK_RUNNING;
 	

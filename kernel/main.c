@@ -40,7 +40,10 @@ void kernel_main(void)
     //ptr = (int*)(0x12345678);
     //*ptr = 1;
   lcr3(PADDR(cur_task->pgdir));
-
+	int *a;
+	a = (cur_task->tf.tf_esp);
+	*a = 1;
+	printk("hey%x\n", cur_task->tf.tf_eip);
   /* Move to user mode */
   asm volatile("movl %0,%%eax\n\t" \
   "pushl %1\n\t" \
