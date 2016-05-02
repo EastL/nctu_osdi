@@ -599,14 +599,32 @@ setupkvm()
 int32_t
 sys_get_num_free_page(void)
 {
-  return num_free_pages;
+	num_free_pages = 0;
+	struct PageInfo *p;
+	p = page_free_list;
+	num_free_pages = 0;
+	while (p != NULL)
+	{
+		num_free_pages++;
+		p = p->pp_link;
+	}
+	return num_free_pages;
 }
 
 /* This is the system call implementation of get_num_used_page */
 int32_t
 sys_get_num_used_page(void)
 {
-  return npages - num_free_pages; 
+	num_free_pages = 0;
+	struct PageInfo *p;
+	p = page_free_list;
+	num_free_pages = 0;
+	while (p != NULL)
+	{
+		num_free_pages++;
+		p = p->pp_link;
+	}
+	return npages - num_free_pages; 
 }
 
 // --------------------------------------------------------------

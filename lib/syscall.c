@@ -58,6 +58,9 @@ puts(const char *s, size_t len)
 SYSCALL_NOARG(cls, int32_t)
 SYSCALL_NOARG(fork, int32_t)
 SYSCALL_NOARG(get_ticks, unsigned long)
+SYSCALL_NOARG(get_num_free_page, int32_t)
+SYSCALL_NOARG(get_num_used_page, int32_t)
+
 void settextcolor(unsigned char fore, unsigned char back)
 {
 	syscall(SYS_settextcolor, (uint32_t)fore, (uint32_t)back, 0, 0, 0);
@@ -65,18 +68,6 @@ void settextcolor(unsigned char fore, unsigned char back)
 
 void sleep(uint32_t ticks)
 {
-}
-
-int32_t get_num_used_page(void)
-{
-	int32_t ret_page;
-	return ret_page;
-}
-
-int32_t get_num_free_page(void)
-{
-	int32_t ret_page;
-	return ret_page;
 }
 
 int32_t getpid(void)

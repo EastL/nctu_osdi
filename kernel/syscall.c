@@ -28,9 +28,11 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
 	switch (syscallno)
 	{
 	case SYS_fork:
-		/* TODO: Lab 5
+	/* TODO: Lab 5
      * You can reference kernel/task.c, kernel/task.h
      */
+
+		retVal = sys_fork();
 		break;
 
 	case SYS_getc:
@@ -64,38 +66,40 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
 		sys_kill(cur_task->task_id);
 		break;
 
-  case SYS_get_num_free_page:
+	case SYS_get_num_free_page:
 		/* TODO: Lab 5
      * You can reference kernel/mem.c
      */
-    break;
+		retVal = sys_get_num_free_page();
+    	break;
 
-  case SYS_get_num_used_page:
+	case SYS_get_num_used_page:
 		/* TODO: Lab 5
      * You can reference kernel/mem.c
      */
-    break;
+		retVal = sys_get_num_used_page();
+    	break;
 
-  case SYS_get_ticks:
+	case SYS_get_ticks:
 		/* TODO: Lab 5
      * You can reference kernel/timer.c
      */
-    retVal = sys_get_ticks();
-    break;
+    	retVal = sys_get_ticks();
+    	break;
 
-  case SYS_settextcolor:
+	case SYS_settextcolor:
 		/* TODO: Lab 5
      * You can reference kernel/screen.c
      */
-	sys_settextcolor((unsigned char)a1, (unsigned char)a2);
-    break;
+		sys_settextcolor((unsigned char)a1, (unsigned char)a2);
+    	break;
 
-  case SYS_cls:
+	case SYS_cls:
 		/* TODO: Lab 5
      * You can reference kernel/screen.c
      */
-	sys_cls();
-    break;
+		sys_cls();
+    	break;
 
 	}
 	return retVal;

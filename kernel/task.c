@@ -120,9 +120,7 @@ int task_create()
 	struct PageInfo *newStack;
 	for (index = 1; index < 11; index++) {
 		newStack = page_alloc(0);
-		printk("alloc:%x\n", newStack);
 		insert = page_insert(ts->pgdir, newStack, (void *)(USTACKTOP-PGSIZE*index), (PTE_U | PTE_W));
-		printk("insert:%d\n", insert);
 	}
 	/* Setup Trapframe */
 	memset( &(ts->tf), 0, sizeof(ts->tf));
@@ -181,11 +179,12 @@ void sys_kill(int pid)
 {
 	if (pid > 0 && pid < NR_TASKS)
 	{
-	/* TODO: Lab 5
-   * Remember to change the state of tasks
-   * Free the memory
-   * and invoke the scheduler for yield
-   */
+
+		/* TODO: Lab 5
+		 * Remember to change the state of tasks
+		 * Free the memory
+		 * and invoke the scheduler for yield
+		 */
 
 		//find task
 		Task t;
@@ -236,17 +235,38 @@ void sys_kill(int pid)
  */
 int sys_fork()
 {
-  /* pid for newly created process */
-  int pid;
+	/* pid for newly created process */
+	pte_t *pte;
+	int pid, i;
+	struct PageInfo *pp;
+	pid = task_create();
+	if (pid == -1)
+		return pid;
+	tasks[pid].tf = cur_task->tf;
+
+	//Copy the content of the old stack to the new one
+	for (i = 0; i < 10; i++)
+	{
+		pp = page_lookup(cur_task->pgdir, USTACKTOP-PGSIZE*(10-i), &pte);
+		lcr3(PADDR(tasks[pid].pgdir));
+		if(page_insert(tasks[pid].pgdir, pp, UTEMP+PGSIZE*i, PTE_U) != 0)
+			return -1;
+		memcpy(USTACKTOP-PGSIZE*(10-i), UTEMP+PGSIZE*i, PGSIZE);
+		lcr3(PADDR(cur_task->pgdir));
+	}
+
 	if ((uint32_t)cur_task)
 	{
-    /* Step 4: All user program use the same code for now */
-    setupvm(tasks[pid].pgdir, (uint32_t)UTEXT_start, UTEXT_SZ);
-    setupvm(tasks[pid].pgdir, (uint32_t)UDATA_start, UDATA_SZ);
-    setupvm(tasks[pid].pgdir, (uint32_t)UBSS_start, UBSS_SZ);
-    setupvm(tasks[pid].pgdir, (uint32_t)URODATA_start, URODATA_SZ);
-
+		/* Step 4: All user program use the same code for now */
+		setupvm(tasks[pid].pgdir, (uint32_t)UTEXT_start, UTEXT_SZ);
+		setupvm(tasks[pid].pgdir, (uint32_t)UDATA_start, UDATA_SZ);
+		setupvm(tasks[pid].pgdir, (uint32_t)UBSS_start, UBSS_SZ);
+		setupvm(tasks[pid].pgdir, (uint32_t)URODATA_start, URODATA_SZ);
 	}
+
+	tasks[pid].state = TASK_RUNNABLE;
+	tasks[pid].tf.tf_regs.reg_eax = 0;
+	return pid;
 }
 
 /* TODO: Lab5
