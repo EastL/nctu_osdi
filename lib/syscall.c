@@ -68,6 +68,7 @@ void settextcolor(unsigned char fore, unsigned char back)
 
 void sleep(uint32_t ticks)
 {
+	syscall(SYS_sleep, ticks, 0, 0, 0, 0);
 }
 
 int32_t getpid(void)

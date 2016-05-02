@@ -34,10 +34,14 @@ void sched_yield(void)
 		{
 			t = &tasks[(task_index+1) % NR_TASKS];
 			t->state = TASK_RUNNING;
+			cur_task->state = TASK_RUNNABLE;
 			cur_task = t;
+//			printk("%d\n", t->task_id);
 			lcr3(PADDR(t->pgdir));
 			ctx_switch(t);
 		}
 	}
+	
+	cur_task->remind_ticks = TIME_QUANT;
 	
 }

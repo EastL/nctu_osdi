@@ -110,6 +110,7 @@ int task_create()
 		if (i == NR_TASKS - 1)
 			return -1;
 	}
+	printk("%d\n", i);
 
   /* Setup Page Directory and pages for kernel*/
   if (!(ts->pgdir = setupkvm()))
@@ -120,7 +121,10 @@ int task_create()
 	struct PageInfo *newStack;
 	for (index = 1; index < 11; index++) {
 		newStack = page_alloc(0);
-		insert = page_insert(ts->pgdir, newStack, (void *)(USTACKTOP-PGSIZE*index), (PTE_U | PTE_W));
+		if (page_insert(tasks[i].pgdir, newStack, (void *)(USTACKTOP-PGSIZE*index), (PTE_U | PTE_W)) != 0) {
+			panic("can't insert page");
+			return -1;
+		}
 	}
 	/* Setup Trapframe */
 	memset( &(ts->tf), 0, sizeof(ts->tf));
@@ -134,6 +138,7 @@ int task_create()
 	/* Setup task structure (task_id and parent_id) */
 	ts->task_id = i;
 	ts->parent_id = 0;
+	ts->remind_ticks = TIME_QUANT;
 	return i;
 }
 
@@ -160,19 +165,15 @@ static void task_free(int pid)
 	//use kernel pgdir
 	lcr3(PADDR(kern_pgdir));
 
-	//find task
-	Task t;
-	int i;
-	for (i = 0; i < NR_TASKS; i++)
-		if (pid == tasks[i].task_id)
-			t = tasks[i];
 
+	page_remove(tasks[1].pgdir, (void *)(USTACKTOP-PGSIZE)); 
 	//remove user stack
+	int i;
 	for (i = 1; i < 11 ; i++)
-		page_remove(t.pgdir, (void *) (USTACKTOP-PGSIZE*i));
+		page_remove(tasks[pid].pgdir, (void *)(USTACKTOP-PGSIZE*i));
 
-	ptable_remove(t.pgdir);
-	pgdir_remove(t.pgdir);
+	ptable_remove(tasks[pid].pgdir);
+	pgdir_remove(tasks[pid].pgdir);
 }
 
 void sys_kill(int pid)
@@ -186,17 +187,10 @@ void sys_kill(int pid)
 		 * and invoke the scheduler for yield
 		 */
 
-		//find task
-		Task t;
-		int i;
-		for (i = 0; i < NR_TASKS; i++)
-		{
-			if (pid == tasks[i].task_id)
-				t = tasks[i];
-		}
 
+		printk("%d\n", pid);
 		//change the state of tasks
-		t.state = TASK_FREE;
+		tasks[pid].state = TASK_FREE;
 		//free memory
 		task_free(pid);
 
@@ -305,6 +299,7 @@ void task_init()
 
 	/* Setup first task */
 	i = task_create();
+	printk("cur%d\n", i);
 	cur_task = &(tasks[i]);
 
   /* For user program */
@@ -322,7 +317,6 @@ void task_init()
 
 	// Load the TSS selector 
 	ltr(GD_TSS0);
-	printk("hey\n");
 
 	cur_task->state = TASK_RUNNING;
 	

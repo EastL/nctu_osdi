@@ -20,6 +20,14 @@ int32_t do_getc()
 	return a;
 }
 
+void sys_sleep(uint32_t ticks)
+{
+	extern Task *cur_task;
+	cur_task->remind_ticks = ticks;
+	cur_task->state = TASK_SLEEP;
+	sched_yield();
+}
+
 int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
 {
 	int32_t retVal = -1;
@@ -56,6 +64,7 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
      * Yield this task
      * You can reference kernel/sched.c for yielding the task
      */
+		sys_sleep(a1);
 		break;
 
 	case SYS_kill:
