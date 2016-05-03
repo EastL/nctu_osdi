@@ -241,9 +241,10 @@ int sys_fork()
 	{
 		pp = page_lookup(cur_task->pgdir, USTACKTOP-PGSIZE*(10-i), &pte);
 		lcr3(PADDR(tasks[pid].pgdir));
-		if(page_insert(tasks[pid].pgdir, pp, UTEMP+PGSIZE*i, PTE_U) != 0)
+		if(page_insert(tasks[pid].pgdir, pp, (void *)(UTEMP+PGSIZE*i), PTE_U) != 0)
 			return -1;
 		memcpy(USTACKTOP-PGSIZE*(10-i), UTEMP+PGSIZE*i, PGSIZE);
+		page_remove(tasks[pid].pgdir, (void *)(UTEMP+PGSIZE*i));
 		lcr3(PADDR(cur_task->pgdir));
 	}
 
