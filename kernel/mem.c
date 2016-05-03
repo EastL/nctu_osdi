@@ -511,7 +511,7 @@ page_remove(pde_t *pgdir, void *va)
 	struct PageInfo *page;  
 
 	page = page_lookup(pgdir, va, &pte);
-	if (*pte == NULL)
+	if (pte == NULL)
 		return;
 
 	page_decref(page);
@@ -574,7 +574,7 @@ setupkvm()
 	if (newPage == NULL)
 		return NULL;
 
-	newPage->pp_ref++;
+	//newPage->pp_ref++;
 
 	memset(page2kva(newPage), 0, PGSIZE);
 	

@@ -110,7 +110,6 @@ int task_create()
 		if (i == NR_TASKS - 1)
 			return -1;
 	}
-	printk("%d\n", i);
 
   /* Setup Page Directory and pages for kernel*/
   if (!(ts->pgdir = setupkvm()))
@@ -166,12 +165,12 @@ static void task_free(int pid)
 	lcr3(PADDR(kern_pgdir));
 
 
-	page_remove(tasks[1].pgdir, (void *)(USTACKTOP-PGSIZE)); 
 	//remove user stack
 	int i;
 	for (i = 1; i < 11 ; i++)
 		page_remove(tasks[pid].pgdir, (void *)(USTACKTOP-PGSIZE*i));
 
+	//printk("yo\n");
 	ptable_remove(tasks[pid].pgdir);
 	pgdir_remove(tasks[pid].pgdir);
 }
@@ -188,7 +187,6 @@ void sys_kill(int pid)
 		 */
 
 
-		printk("%d\n", pid);
 		//change the state of tasks
 		tasks[pid].state = TASK_FREE;
 		//free memory

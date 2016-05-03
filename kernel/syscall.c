@@ -132,7 +132,7 @@ void syscall_init()
    * You can leverage the API register_handler in kernel/trap.c
    */
 	extern void SYS_Input();
-	register_handler(T_SYSCALL, syscall_handler, SYS_Input, 0, 3);
+	register_handler(T_SYSCALL, syscall_handler, SYS_Input, 1, 3);
 
 }
 
