@@ -121,7 +121,7 @@ int task_create()
 	for (index = 1; index < 11; index++) {
 		newStack = page_alloc(0);
 		if (page_insert(tasks[i].pgdir, newStack, (void *)(USTACKTOP-PGSIZE*index), (PTE_U | PTE_W)) != 0) {
-			panic("can't insert page");
+//			panic("can't insert page");
 			return -1;
 		}
 	}
@@ -242,7 +242,10 @@ int sys_fork()
 		pp = page_lookup(cur_task->pgdir, USTACKTOP-PGSIZE*(10-i), &pte);
 		lcr3(PADDR(tasks[pid].pgdir));
 		if(page_insert(tasks[pid].pgdir, pp, (void *)(UTEMP+PGSIZE*i), PTE_U) != 0)
+		{
+			printk("insert temp memory error!!\n");
 			return -1;
+		}
 		memcpy(USTACKTOP-PGSIZE*(10-i), UTEMP+PGSIZE*i, PGSIZE);
 		page_remove(tasks[pid].pgdir, (void *)(UTEMP+PGSIZE*i));
 		lcr3(PADDR(cur_task->pgdir));
@@ -298,7 +301,6 @@ void task_init()
 
 	/* Setup first task */
 	i = task_create();
-	printk("cur%d\n", i);
 	cur_task = &(tasks[i]);
 
   /* For user program */

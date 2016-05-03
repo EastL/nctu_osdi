@@ -7,6 +7,7 @@
 #include <inc/assert.h>
 
 #include <kernel/mem.h>
+#include <kernel/task.h>
 #include <kernel/kclock.h>
 
 // These variables are set by i386_detect_memory()
@@ -316,12 +317,13 @@ page_alloc(int alloc_flags)
 void
 page_free(struct PageInfo *pp)
 {
+	extern Task *cur_task;
 	// Fill this function in
 	// Hint: You may want to panic if pp->pp_ref is nonzero or
 	// pp->pp_link is not NULL.
     /* TODO */
 	if (pp->pp_ref != 0)
-		panic("there is not a free page!");
+		printk("there is not a free page! \ncur_id:%d\npage:%x \n ref:%d\n", cur_task->task_id, page2pa(pp), pp->pp_ref);
 	if (pp->pp_link != NULL)
 		panic("next free doesn't clear!");
 
