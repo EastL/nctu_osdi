@@ -590,6 +590,17 @@ setupkvm()
 
 	pde[0] = kern_pgdir[0]; // map IO
 
+	//add pp_ref
+	struct PageInfo *pp;
+	for (i = 0; i < 1024; i++)
+	{
+		if(pde[i] & PTE_P)
+		{
+			pp = pa2page(PTE_ADDR(pgdir[0]));
+			pp->pp_ref++;
+		}
+	}
+
 	return pde;
 }
 
