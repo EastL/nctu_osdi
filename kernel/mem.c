@@ -596,11 +596,10 @@ setupkvm()
 	{
 		if(pde[i] & PTE_P)
 		{
-			pp = pa2page(PTE_ADDR(pde[0]));
+			pp = pa2page(PTE_ADDR(pde[i]));
 			pp->pp_ref++;
 		}
 	}
-
 	return pde;
 }
 
