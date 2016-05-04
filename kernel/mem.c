@@ -596,7 +596,7 @@ setupkvm()
 	{
 		if(pde[i] & PTE_P)
 		{
-			pp = pa2page(PTE_ADDR(pgdir[0]));
+			pp = pa2page(PTE_ADDR(pde[0]));
 			pp->pp_ref++;
 		}
 	}
