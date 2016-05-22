@@ -201,7 +201,7 @@ mem_init(void)
 	// Permissions: kernel RW, user NONE
 	// Your code goes here:
     /* TODO */
-	//boot_map_region(kern_pgdir, KERNBASE , 0x0fffffff , 0,  (PTE_W) | (PTE_P));
+	boot_map_region(kern_pgdir, KERNBASE , 0x0fffffff , 0,  (PTE_W) | (PTE_P));
 
 	//////////////////////////////////////////////////////////////////////
 	// Map VA range [IOPHYSMEM, EXTPHYSMEM) to PA range [IOPHYSMEM, EXTPHYSMEM)
@@ -257,6 +257,13 @@ mem_init_mp(void)
 	//     Permissions: kernel RW, user NONE
 	// TODO:
 	// Lab6: Your code here:
+	uint32_t i;
+	uint32_t bottom_stack = KSTACKTOP - KSTKSIZE;
+	for (i = 0; i < 8; i++) {
+		boot_map_region(kern_pgdir, bottom_stack, KSTKSIZE, PADDR(percpu_kstacks[i]), PTE_W | PTE_P);
+		bottom_stack -= KSTKGAP;
+		bottom_stack -= KSTKSIZE;
+	}
 
 }
 
@@ -303,8 +310,10 @@ page_init(void)
     size_t i;
 	uint32_t io_size = (EXTPHYSMEM - IOPHYSMEM) / PGSIZE;
 	uint32_t kernAndpage_size = ((uint32_t) boot_alloc(0) - KERNBASE) / PGSIZE;
+
 	for (i = 0; i < npages; i++) {
-		if (i == 0 /*Mark physical page 0 as in use.*/ || 
+		//printk("%d", i);
+		if (i == 0 /*Mark physical page 0 as in use.*/ || i == PGNUM(MPENTRY_PADDR) /*mp code */||
 			(i >= npages_basemem && i < npages_basemem + io_size) /*IO hole*/ ||
 			(i >= npages_basemem + io_size && i < npages_basemem + io_size + kernAndpage_size) /*kernel data and code and page*/ 
 			) {
@@ -353,13 +362,13 @@ page_alloc(int alloc_flags)
 void
 page_free(struct PageInfo *pp)
 {
-	extern Task *cur_task;
+	//extern Task *cur_task;
 	// Fill this function in
 	// Hint: You may want to panic if pp->pp_ref is nonzero or
 	// pp->pp_link is not NULL.
     /* TODO */
 	if (pp->pp_ref != 0)
-		printk("there is not a free page! \ncur_id:%d\npage:%x \n ref:%d\n", cur_task->task_id, page2pa(pp), pp->pp_ref);
+		printk("there is not a free page! \ncur_id:%d\npage:%x \n ref:%d\n", thiscpu->cpu_task->task_id, page2pa(pp), pp->pp_ref);
 	if (pp->pp_link != NULL)
 		panic("next free doesn't clear!");
 
@@ -622,9 +631,14 @@ mmio_map_region(physaddr_t pa, size_t size)
 	//
 	// Lab6 TODO
 	// Your code here:
-	
+	if (base + size > MMIOLIM)
+		panic("MMIO size too large!");	
 
-	panic("mmio_map_region not implemented");
+	boot_map_region(kern_pgdir, base, ROUNDUP(size, PGSIZE), pa, PTE_PCD|PTE_PWT|PTE_W);
+	uintptr_t mp_base = base;
+	base += ROUNDUP(size, PGSIZE);
+	return mp_base;
+	//panic("mmio_map_region not implemented");
 }
 
 /* This is a simple wrapper function for mapping user program */
@@ -655,12 +669,11 @@ setupkvm()
 	if (newPage == NULL)
 		return NULL;
 
-	//newPage->pp_ref++;
+	pde_t *pde;
+	pde = (pde_t *) page2kva(newPage);
 
 	memset(page2kva(newPage), 0, PGSIZE);
 	
-	pde_t *pde;
-	pde = (pde_t *) page2kva(newPage);
 
 	int i;
 	//copy user pgdir
@@ -680,6 +693,20 @@ setupkvm()
 		}
 	}
 	return pde;
+/*
+	boot_map_region(pde, UPAGES, ROUNDUP((sizeof(struct PageInfo) * npages), PGSIZE), PADDR(pages), (PTE_U | PTE_P));
+	boot_map_region(pde, KERNBASE , 0x0fffffff , 0,  (PTE_W) | (PTE_P));
+    boot_map_region(pde, IOPHYSMEM, ROUNDUP((EXTPHYSMEM - IOPHYSMEM), PGSIZE), IOPHYSMEM, (PTE_W) | (PTE_P));
+
+	uint32_t i;
+	uint32_t bottom_stack = KSTACKTOP - KSTKSIZE;
+	for (i = 0; i < NCPU; i++) {
+		boot_map_region(pde, bottom_stack, KSTKSIZE, PADDR(percpu_kstacks[i]), PTE_W | PTE_P);
+		bottom_stack -= KSTKGAP;
+		bottom_stack -= KSTKSIZE;
+	}
+	//newPage->pp_ref++;
+*/
 }
 
 
@@ -753,31 +780,53 @@ check_page_free_list(bool only_low_memory)
 
 	// if there's a page that shouldn't be on the free list,
 	// try to make sure it eventually causes trouble.
-	for (pp = page_free_list; pp; pp = pp->pp_link)
-		if (PDX(page2pa(pp)) < pdx_limit)
+	for (pp = page_free_list; pp; pp = pp->pp_link){
+		if (PDX(page2pa(pp)) < pdx_limit) {
+			//printk("%d\n", PDX(page2pa(pp)));
 			memset(page2kva(pp), 0x97, 128);
+		}
+	}
 
 	first_free_page = (char *) boot_alloc(0);
+	int a;
 	for (pp = page_free_list; pp; pp = pp->pp_link) {
 		// check that we didn't corrupt the free list itself
+		//printk("a\n");
+			
 		assert(pp >= pages);
+		//printk("b\n");
 		assert(pp < pages + npages);
+		//printk("c\n");
 		assert(((char *) pp - (char *) pages) % sizeof(*pp) == 0);
+		//printk("d\n");
 
 		// check a few pages that shouldn't be on the free list
 		assert(page2pa(pp) != 0);
+		//printk("e\n");
 		assert(page2pa(pp) != IOPHYSMEM);
+		//printk("f\n");
 		assert(page2pa(pp) != EXTPHYSMEM - PGSIZE);
+		//printk("g\n");
 		assert(page2pa(pp) != EXTPHYSMEM);
+		//printk("h\n");
 		assert(page2pa(pp) < EXTPHYSMEM || (char *) page2kva(pp) >= first_free_page);
-    		// (new test for Lab6)
-    		assert(page2pa(pp) != MPENTRY_PADDR);
+		//printk("i\n");
+    	// (new test for Lab6)
+    	assert(page2pa(pp) != MPENTRY_PADDR);
+		//printk("j\n");
+		//printk("%x\n", page2pa(pp));
+		//printk("HA:%x \n", pp->pp_link);
 
-		if (page2pa(pp) < EXTPHYSMEM)
+		if (page2pa(pp) < EXTPHYSMEM){
 			++nfree_basemem;
-		else
+			//printk("k\n");
+		}
+		else{
+			//printk("l\n");
 			++nfree_extmem;
+		}
 	}
+	//printk("aaaaaaaaaa\n");
 
 	assert(nfree_basemem > 0);
 	assert(nfree_extmem > 0);
@@ -909,7 +958,7 @@ check_kern_pgdir(void)
 		case PDX(UVPT):
 		case PDX(KSTACKTOP-1):
 		case PDX(UPAGES):
-      		case PDX(MMIOBASE):
+      	case PDX(MMIOBASE):
 			assert(pgdir[i] & PTE_P);
 			break;
 		default:

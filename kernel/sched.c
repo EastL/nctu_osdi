@@ -43,9 +43,9 @@
 void sched_yield(void)
 {
 	extern Task tasks[];
-	extern Task *cur_task;
+	//extern Task *cur_task;
 
-	int task_index = cur_task ? (cur_task->task_id) : 0;
+	int task_index = thiscpu->cpu_task ? (thiscpu->cpu_task->task_id) : 0;
 	int index;
 
 	for (index = 0; index < NR_TASKS; index++)
@@ -53,14 +53,14 @@ void sched_yield(void)
 		task_index++;
 		if (tasks[task_index % NR_TASKS].state == TASK_RUNNABLE)
 		{
-			cur_task = &tasks[task_index % NR_TASKS];
-			cur_task->state = TASK_RUNNING;
-			lcr3(PADDR(cur_task->pgdir));
-			ctx_switch(cur_task);
+			thiscpu->cpu_task = &tasks[task_index % NR_TASKS];
+			thiscpu->cpu_task->state = TASK_RUNNING;
+			lcr3(PADDR(thiscpu->cpu_task->pgdir));
+			ctx_switch(thiscpu->cpu_task);
 		}
 	}
 	
-	if (cur_task->task_id == 0)
-		cur_task->remind_ticks = TIME_QUANT;
+	if (thiscpu->cpu_task->task_id == 0)
+		thiscpu->cpu_task->remind_ticks = TIME_QUANT;
 	
 }

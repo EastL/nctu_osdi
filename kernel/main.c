@@ -12,7 +12,7 @@
 
 extern void init_video(void);
 static void boot_aps(void);
-extern Task *cur_task;
+//extern Task *cur_task;
 
 void kernel_main(void)
 {
@@ -43,7 +43,7 @@ void kernel_main(void)
     /* Test for page fault handler */
     //ptr = (int*)(0x12345678);
     //*ptr = 1;
-  lcr3(PADDR(cur_task->pgdir));
+  lcr3(PADDR(thiscpu->cpu_task->pgdir));
   /* Move to user mode */
   asm volatile("movl %0,%%eax\n\t" \
   "pushl %1\n\t" \
@@ -52,7 +52,7 @@ void kernel_main(void)
   "pushl %2\n\t" \
   "pushl %3\n\t" \
   "iret\n" \
-  :: "m" (cur_task->tf.tf_esp), "i" (GD_UD | 0x03), "i" (GD_UT | 0x03), "m" (cur_task->tf.tf_eip)
+  :: "m" (thiscpu->cpu_task->tf.tf_esp), "i" (GD_UD | 0x03), "i" (GD_UT | 0x03), "m" (thiscpu->cpu_task->tf.tf_eip)
   :"ax");
 }
 
@@ -79,6 +79,20 @@ boot_aps(void)
 	//      -- Wait for the CPU to finish some basic setup in mp_main(
 	// 
 	// Your code here:
+	extern char *mpentry_start, *mpentry_end;
+	memmove(KADDR(MPENTRY_PADDR), &mpentry_start, &mpentry_end - &mpentry_start);
+
+	struct CpuInfo *c;
+
+	for (c = cpus; c < cpus + ncpu;c++) {
+		if (c->cpu_id == 0)
+			continue;
+
+		mpentry_kstack = percpu_kstacks[c - cpus] + KSTKSIZE;
+		lapic_startap(c->cpu_id, MPENTRY_PADDR);
+		while(c->cpu_status != CPU_STARTED)
+			printk("wait");
+	}
 }
 
 // Setup code for APs
@@ -152,15 +166,15 @@ mp_main(void)
 	printk("SMP: CPU %d starting\n", cpunum());
 	
 	// Your code here:
-	
-
+	lapic_init();
+	task_init_percpu();
 	// TODO: Lab6
 	// Now that we have finished some basic setup, it's time to tell
 	// boot_aps() we're up ( using xchg )
 	// Your code here:
 
 
-
+	xchg(&thiscpu->cpu_status, CPU_STARTED);
 	/* Enable interrupt */
 	__asm __volatile("sti");
 

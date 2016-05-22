@@ -13,6 +13,7 @@ typedef enum
 	TASK_RUNNING,
 	TASK_SLEEP,
 	TASK_STOP,
+	TASK_IDLE,
 } TaskState;
 
 // Each task's user space
@@ -25,7 +26,8 @@ typedef struct
 	struct Trapframe tf; //Saved registers
 	int32_t remind_ticks;
 	TaskState state;	//Task state
-  pde_t *pgdir;  //Per process Page Directory
+	pde_t *pgdir;  //Per process Page Directory
+	struct Task *next;
 	
 } Task;
 
@@ -41,6 +43,8 @@ typedef struct
 //
 typedef struct
 {
+	int total;
+	struct Task *runq;
 
 } Runqueue;
 
