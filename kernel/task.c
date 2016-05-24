@@ -339,7 +339,7 @@ void task_init_percpu()
 
 	/* Setup TSS in GDT */
 	gdt[(GD_TSS0 >> 3) + thiscpu->cpu_id] = SEG16(STS_T32A, (uint32_t)(&(thiscpu->cpu_tss)), sizeof(struct tss_struct), 0);
-	gdt[GD_TSS0 >> 3 + thiscpu->cpu_id].sd_s = 0;
+	gdt[(GD_TSS0 >> 3) + thiscpu->cpu_id].sd_s = 0;
 
 	/* Setup first task */
 	i = task_create();
@@ -366,6 +366,7 @@ void task_init_percpu()
 	
 	/* Load GDT&LDT */
 	lgdt(&gdt_pd);
+/*
 	asm volatile("movw %%ax, %%gs" :: "a" (GD_UD|3));
 	asm volatile("movw %%ax, %%fs" :: "a" (GD_UD|3));
 
@@ -374,13 +375,14 @@ void task_init_percpu()
 	asm volatile("movw %%ax, %%ss" :: "a" (GD_KD));
 
 	asm volatile("ljmp %0, $1f\n 1:\n" :: "i" (GD_KT));
+*/
 
 
 
 	lldt(0);
 
 	// Load the TSS selector 
-	ltr(GD_TSS0 + thiscpu->cpu_id * sizeof(struct Segdesc));
+	ltr((GD_TSS0 & 0x3) | (((GD_TSS0 >> 3) + thiscpu->cpu_id) << 3) );
 
 	//cur_task->state = TASK_RUNNING;
 }
