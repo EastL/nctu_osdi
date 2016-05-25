@@ -48,7 +48,7 @@ void timer_handler(struct Trapframe *tf)
 		*
 		*/
 
-		for (i = 0; i < NR_TASKS; i++)
+		for (i = 0; i < thiscpu->cpu_rq.total; i++)
 		{
 			if (tasks[i].state == TASK_SLEEP)
 			{
