@@ -431,6 +431,11 @@ pgdir_walk(pde_t *pgdir, const void *va, int create)
 		*pde = (page2pa(new_page) | PTE_P | PTE_U | PTE_W);
 	}
 
+	if (PTE_ADDR(*pde) == 0x97979000) {
+		printk("int:%d\nhex:%x\n", PDX(va), PDX(va));
+		printk("pgdir:%x\n", &pgdir);
+		printk("*pde:%x\n", *pde);
+	}
 	pte_base = KADDR(PTE_ADDR(*pde));
 	return &pte_base[PTX(va)];
 }
@@ -631,12 +636,14 @@ mmio_map_region(physaddr_t pa, size_t size)
 	//
 	// Lab6 TODO
 	// Your code here:
+	printk("base:%x\n", base);
 	if (base + size > MMIOLIM)
 		panic("MMIO size too large!");	
 
 	boot_map_region(kern_pgdir, base, ROUNDUP(size, PGSIZE), pa, PTE_PCD|PTE_PWT|PTE_W);
 	uintptr_t mp_base = base;
 	base += ROUNDUP(size, PGSIZE);
+	printk("%x\n", mp_base);
 	return mp_base;
 	//panic("mmio_map_region not implemented");
 }
@@ -668,11 +675,32 @@ setupkvm()
 	newPage = page_alloc(0);
 	if (newPage == NULL)
 		return NULL;
+	memset(page2kva(newPage), 0, PGSIZE);
 
+	pde_t  *tpde;
+	tpde = page2kva(newPage);
+	printk("IO:%x\n", tpde);
+	printk("IO:%x\n", *tpde);
+	extern uint32_t *lapic;
+	extern physaddr_t lapicaddr;
 	pde_t *pde;
 	pde = (pde_t *) page2kva(newPage);
+	printk("pde:%x\n", &pde);
+	printk("mem_lapic:%x\n", lapic[8]);
+	boot_map_region(pde, UPAGES, ROUNDUP((sizeof(struct PageInfo) * npages), PGSIZE), PADDR(pages), (PTE_U | PTE_P));
+	boot_map_region(pde, KERNBASE , 0x0fffffff , 0,  (PTE_W) | (PTE_P));
+	boot_map_region(pde, IOPHYSMEM, ROUNDUP((EXTPHYSMEM - IOPHYSMEM), PGSIZE), IOPHYSMEM, (PTE_W) | (PTE_P));
+	boot_map_region(pde, lapic, PGSIZE, lapicaddr, PTE_PCD|PTE_PWT|PTE_W);
+	uint32_t i;
+	uint32_t bottom_stack = KSTACKTOP - KSTKSIZE;
+	for (i = 0; i < NCPU; i++) {
+		boot_map_region(pde, bottom_stack, KSTKSIZE, PADDR(percpu_kstacks[i]), PTE_W | PTE_P);
+		bottom_stack -= KSTKGAP;
+		bottom_stack -= KSTKSIZE;
+	}
+	//newPage->pp_ref++;
 
-	memset(page2kva(newPage), 0, PGSIZE);
+/*
 	
 
 	int i;
@@ -692,21 +720,8 @@ setupkvm()
 			pp->pp_ref++;
 		}
 	}
-	return pde;
-/*
-	boot_map_region(pde, UPAGES, ROUNDUP((sizeof(struct PageInfo) * npages), PGSIZE), PADDR(pages), (PTE_U | PTE_P));
-	boot_map_region(pde, KERNBASE , 0x0fffffff , 0,  (PTE_W) | (PTE_P));
-    boot_map_region(pde, IOPHYSMEM, ROUNDUP((EXTPHYSMEM - IOPHYSMEM), PGSIZE), IOPHYSMEM, (PTE_W) | (PTE_P));
-
-	uint32_t i;
-	uint32_t bottom_stack = KSTACKTOP - KSTKSIZE;
-	for (i = 0; i < NCPU; i++) {
-		boot_map_region(pde, bottom_stack, KSTKSIZE, PADDR(percpu_kstacks[i]), PTE_W | PTE_P);
-		bottom_stack -= KSTKGAP;
-		bottom_stack -= KSTKSIZE;
-	}
-	//newPage->pp_ref++;
 */
+	return pde;
 }
 
 
@@ -782,7 +797,6 @@ check_page_free_list(bool only_low_memory)
 	// try to make sure it eventually causes trouble.
 	for (pp = page_free_list; pp; pp = pp->pp_link){
 		if (PDX(page2pa(pp)) < pdx_limit) {
-			//printk("%d\n", PDX(page2pa(pp)));
 			memset(page2kva(pp), 0x97, 128);
 		}
 	}

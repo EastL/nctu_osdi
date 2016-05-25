@@ -79,8 +79,10 @@ boot_aps(void)
 	//      -- Wait for the CPU to finish some basic setup in mp_main(
 	// 
 	// Your code here:
-	extern char *mpentry_start, *mpentry_end;
-	memmove(KADDR(MPENTRY_PADDR), &mpentry_start, &mpentry_end - &mpentry_start);
+	extern char mpentry_start[], mpentry_end[];
+	void *kva;
+	kva = KADDR(MPENTRY_PADDR);
+	memmove(kva, mpentry_start, /*(mpentry_end - mpentry_start)*/122);
 
 	struct CpuInfo *c;
 
@@ -89,9 +91,8 @@ boot_aps(void)
 			continue;
 
 		mpentry_kstack = percpu_kstacks[c - cpus] + KSTKSIZE;
-		lapic_startap(c->cpu_id, MPENTRY_PADDR);
-		while(c->cpu_status != CPU_STARTED)
-			printk("wait");
+		lapic_startap(c->cpu_id, PADDR(kva));
+		while(c->cpu_status != CPU_STARTED);
 	}
 }
 
@@ -167,6 +168,8 @@ mp_main(void)
 	
 	// Your code here:
 	lapic_init();
+	extern struct Pseudodesc idt_pd;
+	extern struct Pseudodesc gdt_pd;
 	task_init_percpu();
 	// TODO: Lab6
 	// Now that we have finished some basic setup, it's time to tell
@@ -179,6 +182,7 @@ mp_main(void)
 	__asm __volatile("sti");
 
 	lcr3(PADDR(thiscpu->cpu_task->pgdir));
+	lidt(&idt_pd);
 
 	/* Move to user mode */
 	asm volatile("movl %0,%%eax\n\t" \
