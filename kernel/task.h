@@ -23,6 +23,7 @@ typedef struct
 {
 	int task_id;
 	int parent_id;
+	int cpu_id;
 	struct Trapframe tf; //Saved registers
 	int32_t remind_ticks;
 	TaskState state;	//Task state
