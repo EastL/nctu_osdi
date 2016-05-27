@@ -636,14 +636,12 @@ mmio_map_region(physaddr_t pa, size_t size)
 	//
 	// Lab6 TODO
 	// Your code here:
-	printk("base:%x\n", base);
 	if (base + size > MMIOLIM)
 		panic("MMIO size too large!");	
 
 	boot_map_region(kern_pgdir, base, ROUNDUP(size, PGSIZE), pa, PTE_PCD|PTE_PWT|PTE_W);
 	uintptr_t mp_base = base;
 	base += ROUNDUP(size, PGSIZE);
-	printk("%x\n", mp_base);
 	return mp_base;
 	//panic("mmio_map_region not implemented");
 }
@@ -677,16 +675,11 @@ setupkvm()
 		return NULL;
 	memset(page2kva(newPage), 0, PGSIZE);
 
-	pde_t  *tpde;
-	tpde = page2kva(newPage);
-	printk("IO:%x\n", tpde);
-	printk("IO:%x\n", *tpde);
 	extern uint32_t *lapic;
 	extern physaddr_t lapicaddr;
 	pde_t *pde;
 	pde = (pde_t *) page2kva(newPage);
-	printk("pde:%x\n", &pde);
-	printk("mem_lapic:%x\n", lapic[8]);
+/*
 	boot_map_region(pde, UPAGES, ROUNDUP((sizeof(struct PageInfo) * npages), PGSIZE), PADDR(pages), (PTE_U | PTE_P));
 	boot_map_region(pde, KERNBASE , 0x0fffffff , 0,  (PTE_W) | (PTE_P));
 	boot_map_region(pde, IOPHYSMEM, ROUNDUP((EXTPHYSMEM - IOPHYSMEM), PGSIZE), IOPHYSMEM, (PTE_W) | (PTE_P));
@@ -698,9 +691,9 @@ setupkvm()
 		bottom_stack -= KSTKGAP;
 		bottom_stack -= KSTKSIZE;
 	}
+*/
 	//newPage->pp_ref++;
 
-/*
 	
 
 	int i;
@@ -720,7 +713,6 @@ setupkvm()
 			pp->pp_ref++;
 		}
 	}
-*/
 	return pde;
 }
 

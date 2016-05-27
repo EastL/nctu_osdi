@@ -82,7 +82,7 @@ boot_aps(void)
 	extern char mpentry_start[], mpentry_end[];
 	void *kva;
 	kva = KADDR(MPENTRY_PADDR);
-	memmove(kva, mpentry_start, /*(mpentry_end - mpentry_start)*/122);
+	memmove(kva, mpentry_start, (mpentry_end - mpentry_start));
 
 	struct CpuInfo *c;
 
@@ -91,6 +91,7 @@ boot_aps(void)
 			continue;
 
 		mpentry_kstack = percpu_kstacks[c - cpus] + KSTKSIZE;
+		//printk("stack:%x\n", mpentry_kstack);
 		lapic_startap(c->cpu_id, PADDR(kva));
 		while(c->cpu_status != CPU_STARTED);
 	}
@@ -177,13 +178,13 @@ mp_main(void)
 	// Your code here:
 
 
+	lidt(&idt_pd);
 	xchg(&thiscpu->cpu_status, CPU_STARTED);
 	/* Enable interrupt */
 	__asm __volatile("sti");
 
-	lcr3(PADDR(thiscpu->cpu_task->pgdir));
-	lidt(&idt_pd);
 
+	lcr3(PADDR(thiscpu->cpu_task->pgdir));
 	/* Move to user mode */
 	asm volatile("movl %0,%%eax\n\t" \
 			"pushl %1\n\t" \
