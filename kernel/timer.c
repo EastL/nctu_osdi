@@ -31,6 +31,7 @@ void timer_handler(struct Trapframe *tf)
 
 	jiffies++;
 
+	lapic_eoi();
 	extern Task tasks[];
 
 	//extern Task *cur_task;
@@ -48,15 +49,18 @@ void timer_handler(struct Trapframe *tf)
 		*
 		*/
 
-		for (i = 0; i < NR_TASKS; i++)
+		int index;
+
+		for (i = 0; i < thiscpu->cpu_rq.total; i++)
 		{
-			if (tasks[i].state == TASK_SLEEP)
+			index = thiscpu->cpu_rq.runq[i];
+			if (tasks[index].state == TASK_SLEEP)
 			{
-				tasks[i].remind_ticks--;
-				if (tasks[i].remind_ticks == 0)
+				tasks[index].remind_ticks--;
+				if (tasks[index].remind_ticks == 0)
 				{
-					tasks[i].state = TASK_RUNNABLE;
-					tasks[i].remind_ticks = TIME_QUANT;
+					tasks[index].state = TASK_RUNNABLE;
+					tasks[index].remind_ticks = TIME_QUANT;
 				}
 			}
 		}	

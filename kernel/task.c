@@ -196,6 +196,20 @@ void sys_kill(int pid)
 		 */
 
 
+		if (thiscpu->cpu_rq.total <= 1)
+			panic("there is no task in runq.\n");
+		int i;
+		for (i = 0; i < thiscpu->cpu_rq.total; i++)
+		{
+			if (thiscpu->cpu_rq.runq[i] == pid)
+			{
+				thiscpu->cpu_rq.runq[i] = thiscpu->cpu_rq.runq[thiscpu->cpu_rq.total - 1];
+				break;
+			}
+		}
+
+		thiscpu->cpu_rq.total -= 1;
+
 		//change the state of tasks
 		tasks[pid].state = TASK_FREE;
 		//free memory
@@ -279,6 +293,16 @@ int sys_fork()
 	tasks[pid].state = TASK_RUNNABLE;
 	tasks[pid].tf.tf_regs.reg_eax = 0;
 
+	struct CpuInfo *nextcpu;//use to average task
+	nextcpu = &cpus[(thiscpu->cpu_id + 1) % ncpu];
+
+	if (nextcpu->cpu_rq.total >= NR_TASKS)
+		panic("runq is full!\n");
+
+	nextcpu->cpu_rq.runq[nextcpu->cpu_rq.total] = pid;
+	nextcpu->cpu_rq.total += 1;
+	//printk("%d ", nextcpu->cpu_id);
+	//printk("%d\n", nextcpu->cpu_rq.total);
 	
 	return pid;
 }
@@ -344,7 +368,6 @@ void task_init_percpu()
 	/* Setup first task */
 	i = task_create();
 	thiscpu->cpu_task = &(tasks[i]);
-	thiscpu->cpu_task->next = NULL;
 
 	/* For user program */
 	setupvm(thiscpu->cpu_task->pgdir, (uint32_t)UTEXT_start, UTEXT_SZ);
@@ -360,8 +383,9 @@ void task_init_percpu()
 	}
 
 	/* Setup run queue */
-	thiscpu->cpu_rq.runq = thiscpu->cpu_task;
-	thiscpu->cpu_task->next = thiscpu->cpu_rq.runq;
+	memset(&(thiscpu->cpu_rq), 0, sizeof(thiscpu->cpu_rq));
+	thiscpu->cpu_rq.runq[0] = i;
+	thiscpu->cpu_rq.current_index = 0;
 	thiscpu->cpu_rq.total = 1;
 	
 	/* Load GDT&LDT */

@@ -45,22 +45,29 @@ void sched_yield(void)
 	extern Task tasks[];
 	//extern Task *cur_task;
 
-	int task_index = thiscpu->cpu_task ? (thiscpu->cpu_task->task_id) : 0;
-	int index;
+	int task_i = thiscpu->cpu_task ? (thiscpu->cpu_rq.current_index) : 0;
+	int i, index, task_index;
+	int size;
+	size = thiscpu->cpu_rq.total;
+	//printk("%d ", cpus[1].cpu_rq.total);
+	//printk("%d\n", size);
 
-	for (index = 0; index < NR_TASKS; index++)
+	for (i = 0; i < size; i++)
 	{
-		task_index++;
-		if (tasks[task_index % NR_TASKS].state == TASK_RUNNABLE)
+		//index = thiscpu->cpu_rq.runq[i];
+		task_i++;
+		task_index = thiscpu->cpu_rq.runq[task_i % size];
+		if (tasks[task_index].state == TASK_RUNNABLE)
 		{
-			thiscpu->cpu_task = &tasks[task_index % NR_TASKS];
+			thiscpu->cpu_task = &tasks[task_index];
 			thiscpu->cpu_task->state = TASK_RUNNING;
+			thiscpu->cpu_rq.current_index = task_i;
 			lcr3(PADDR(thiscpu->cpu_task->pgdir));
 			ctx_switch(thiscpu->cpu_task);
 		}
 	}
 	
-	if (thiscpu->cpu_task->task_id == 0)
-		thiscpu->cpu_task->remind_ticks = TIME_QUANT;
+	//if (thiscpu->cpu_task->task_id == 0)
+	//	thiscpu->cpu_task->remind_ticks = TIME_QUANT;
 	
 }
