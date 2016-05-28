@@ -6,6 +6,7 @@
 #include <kernel/task.h>
 #include <kernel/mem.h>
 #include <kernel/cpu.h>
+#include <kernel/spinlock.h>
 
 // Global descriptor table.
 //
@@ -96,12 +97,15 @@ extern void sched_yield(void);
  * 6. Return the pid of the newly created task.
  
  */
+struct spinlock task_lock;
 int task_create()
 {
 	Task *ts = NULL;
 
 	/* Find a free task structure */
 	int i;
+	spin_initlock(&task_lock);
+	spin_lock(&task_lock);
 	for (i = 0; i < NR_TASKS; i++) {
 		if (tasks[i].state == TASK_FREE) {
 			ts = &tasks[i];
@@ -111,6 +115,7 @@ int task_create()
 		if (i == NR_TASKS - 1)
 			return -1;
 	}
+	spin_unlock(&task_lock);
 
   /* Setup Page Directory and pages for kernel*/
   if (!(ts->pgdir = setupkvm()))

@@ -7,6 +7,7 @@
 #include <inc/assert.h>
 
 #include <kernel/mem.h>
+#include <kernel/spinlock.h>
 #include <kernel/task.h>
 #include <kernel/kclock.h>
 #include <kernel/cpu.h>
@@ -338,16 +339,21 @@ page_init(void)
 // Returns NULL if out of free memory.
 //
 // Hint: use page2kva and memset
+struct spinlock page_lock;
 struct PageInfo *
 page_alloc(int alloc_flags)
 {
     /* TODO */
 	struct PageInfo *ret;
+
+	spin_initlock(&page_lock);
 	if (page_free_list == NULL)
 		return NULL;
 
 	ret = page_free_list;
+	spin_lock(&page_lock);
 	page_free_list = ret->pp_link;
+	spin_unlock(&page_lock);
 	ret->pp_link = NULL;
 
 	if (alloc_flags & ALLOC_ZERO) 
