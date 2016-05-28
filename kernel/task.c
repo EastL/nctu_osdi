@@ -186,7 +186,9 @@ static void task_free(int pid)
 //
 void sys_kill(int pid)
 {
-	if (pid > 0 && pid < NR_TASKS)
+	int cpuID = tasks[pid].cpu_id;
+	struct CpuInfo task_cpu = cpus[cpuID];
+	if (pid > 0 && pid < NR_TASKS && task_cpu.cpu_rq.total != 0)
 	{
 
 		/* TODO: Lab 5
@@ -194,8 +196,31 @@ void sys_kill(int pid)
 		 * Free the memory
 		 * and invoke the scheduler for yield
 		 */
+/*
+		Task *current_task = task_cpu.cpu_rq.runq;
 
-
+		int i ;
+		for (i = 0; i < task_cpu.cpu_rq.total; i++) {
+			if (current_task != NULL) {
+				if (i == 0) {
+					if (current_task->task_id == pid) {
+						task_cpu.cpu_rq.runq = current_task->next;
+						current_task->next = NULL;
+						break;
+					}
+				}
+				if (current_task->next != NULL) {
+					if (current_task->next->task_id == pid) {
+						current_task->next = current_task->next->next;
+						current_task->next->next = NULL;
+						break;
+					}
+				}
+				current_task = current_task->next;
+			}
+		}
+		task_cpu.cpu_rq.total -= 1;
+*/
 		if (thiscpu->cpu_rq.total <= 1)
 			panic("there is no task in runq.\n");
 		int i;
