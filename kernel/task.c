@@ -66,6 +66,8 @@ uint32_t UTEXT_SZ;
 uint32_t UDATA_SZ;
 uint32_t UBSS_SZ;
 uint32_t URODATA_SZ;
+struct spinlock ave_lock;
+unsigned int aver = 0; 
 
 //Task *cur_task = NULL; //Current running task
 
@@ -104,7 +106,6 @@ int task_create()
 
 	/* Find a free task structure */
 	int i;
-	spin_initlock(&task_lock);
 	spin_lock(&task_lock);
 	for (i = 0; i < NR_TASKS; i++) {
 		if (tasks[i].state == TASK_FREE) {
@@ -324,10 +325,17 @@ int sys_fork()
 	tasks[pid].tf.tf_regs.reg_eax = 0;
 
 	struct CpuInfo *nextcpu;//use to average task
-	nextcpu = &cpus[(thiscpu->cpu_id + 1) % ncpu];
+	//nextcpu = &cpus[(thiscpu->cpu_id + 1) % ncpu];
+	//printk("averageaaa\n");
+	spin_lock(&ave_lock);
+	nextcpu = &cpus[(++aver) % ncpu];
+	spin_unlock(&ave_lock);
+	//printk("average:%d\n", aver%ncpu);
 
+	//printk("testA\n");
 	if (nextcpu->cpu_rq.total >= NR_TASKS)
 		panic("runq is full!\n");
+	//printk("testB\n");
 
 	nextcpu->cpu_rq.runq[nextcpu->cpu_rq.total] = pid;
 	nextcpu->cpu_rq.total += 1;
@@ -358,6 +366,8 @@ void task_init()
 
 	}
 	task_init_percpu();
+	spin_initlock(&ave_lock);
+	spin_initlock(&task_lock);
 }
 
 // Lab6 TODO

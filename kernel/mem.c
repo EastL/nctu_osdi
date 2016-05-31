@@ -22,6 +22,7 @@ pde_t                    *kern_pgdir;		// Kernel's initial page directory
 struct PageInfo          *pages;		// Physical page state array
 static struct PageInfo   *page_free_list;	// Free list of physical pages
 size_t                   num_free_pages;
+struct spinlock page_lock;
 
 // --------------------------------------------------------------
 // Detect machine's physical memory setup.
@@ -234,6 +235,7 @@ mem_init(void)
 
 	// Some more checks, only possible after kern_pgdir is installed.
 	check_page_installed_pgdir();
+	spin_initlock(&page_lock);
 }
 
 // Modify mappings in kern_pgdir to support SMP
@@ -339,14 +341,12 @@ page_init(void)
 // Returns NULL if out of free memory.
 //
 // Hint: use page2kva and memset
-struct spinlock page_lock;
 struct PageInfo *
 page_alloc(int alloc_flags)
 {
     /* TODO */
 	struct PageInfo *ret;
 
-	spin_initlock(&page_lock);
 	if (page_free_list == NULL)
 		return NULL;
 
