@@ -1,0 +1,32 @@
+Auto-merging Makefile
+CONFLICT (content): Merge conflict in Makefile
+Auto-merging inc/syscall.h
+CONFLICT (content): Merge conflict in inc/syscall.h
+Auto-merging kernel/Makefile
+CONFLICT (content): Merge conflict in kernel/Makefile
+Auto-merging kernel/kern.ld
+CONFLICT (content): Merge conflict in kernel/kern.ld
+Auto-merging kernel/main.c
+CONFLICT (content): Merge conflict in kernel/main.c
+Auto-merging kernel/mem.c
+CONFLICT (content): Merge conflict in kernel/mem.c
+Auto-merging kernel/sched.c
+CONFLICT (content): Merge conflict in kernel/sched.c
+CONFLICT (delete/modify): kernel/shell.c deleted in a34fb2bb00b319f01d75d07a1c27561390a0eea0 and modified in HEAD. Version HEAD of kernel/shell.c left in tree.
+Auto-merging kernel/syscall.c
+CONFLICT (content): Merge conflict in kernel/syscall.c
+Auto-merging kernel/task.c
+CONFLICT (content): Merge conflict in kernel/task.c
+Auto-merging kernel/task.h
+CONFLICT (content): Merge conflict in kernel/task.h
+Auto-merging kernel/timer.c
+CONFLICT (content): Merge conflict in kernel/timer.c
+Auto-merging kernel/trap.c
+Auto-merging kernel/trap_entry.S
+CONFLICT (content): Merge conflict in kernel/trap_entry.S
+Auto-merging lib/syscall.c
+CONFLICT (content): Merge conflict in lib/syscall.c
+Auto-merging user/main.c
+Auto-merging user/shell.c
+CONFLICT (content): Merge conflict in user/shell.c
+Automatic merge failed; fix conflicts and then commit the result.
