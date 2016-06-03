@@ -26,6 +26,7 @@ void set_timer(int hz)
 //
 void timer_handler(struct Trapframe *tf)
 {
+//<<<<<<< HEAD
 	extern void sched_yield();
 	int i;
 
@@ -73,6 +74,40 @@ void timer_handler(struct Trapframe *tf)
 			sched_yield();
 		}
 	}
+/*
+=======
+  extern void sched_yield();
+  int i;
+
+  jiffies++;
+
+  // Lab4: Check is need wakeup sleep task 
+  extern Task tasks[];
+
+  extern Task *cur_task;
+
+  if (cur_task != NULL)
+  {
+    // Lab4: Check is need wakeup sleep task 
+    for (i = 0; i < NR_TASKS; i++)
+    {
+      if (tasks[i].state == TASK_SLEEP)
+      {
+        tasks[i].remind_ticks--;
+        if (tasks[i].remind_ticks <= 0)
+          tasks[i].state = TASK_RUNNABLE;
+      }
+    }
+    // Lab4: Check cur_task->remind_ticks, if remind_ticks <= 0 then yield the task
+    cur_task->remind_ticks--;
+    if (cur_task->remind_ticks <= 0)
+    {
+      cur_task->state = TASK_RUNNABLE;
+      sched_yield();
+    }
+  }
+>>>>>>> a34fb2bb00b319f01d75d07a1c27561390a0eea0
+*/
 }
 
 unsigned long sys_get_ticks()

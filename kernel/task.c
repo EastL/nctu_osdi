@@ -52,7 +52,11 @@ struct Pseudodesc gdt_pd = {
 
 
 
+//<<<<<<< HEAD
 //static struct tss_struct tss;
+//=======
+//static struct Taskstate tss;
+//>>>>>>> a34fb2bb00b319f01d75d07a1c27561390a0eea0
 Task tasks[NR_TASKS];
 
 extern char bootstack[];
@@ -74,6 +78,7 @@ unsigned int aver = 0;
 extern void sched_yield(void);
 
 
+//<<<<<<< HEAD
 /* TODO: Lab5
  * 1. Find a free task structure for the new task,
  *    the global task list is in the array "tasks".
@@ -100,11 +105,16 @@ extern void sched_yield(void);
  
  */
 struct spinlock task_lock;
+//=======
+//Find avaiable task slot and setup 
+//>>>>>>> a34fb2bb00b319f01d75d07a1c27561390a0eea0
 int task_create()
 {
+  struct PageInfo *p;
 	Task *ts = NULL;
 
 	/* Find a free task structure */
+//<<<<<<< HEAD
 	int i;
 	spin_lock(&task_lock);
 	for (i = 0; i < NR_TASKS; i++) {
@@ -117,11 +127,29 @@ int task_create()
 			return -1;
 	}
 	spin_unlock(&task_lock);
+/*
+=======
+	int i = 0, j = 0;
+	Task *ts = NULL;
+	for (i = 0; i < NR_TASKS; i++)
+	{
+		if (tasks[i].state == TASK_FREE || tasks[i].state == TASK_STOP)
+		{
+			ts = &(tasks[i]);
+			break;
+		}
+	}
+	if (i >= NR_TASKS)
+		return -1;
 
-  /* Setup Page Directory and pages for kernel*/
+  // Setup Page Directory 
+>>>>>>> a34fb2bb00b319f01d75d07a1c27561390a0eea0
+*/
+
   if (!(ts->pgdir = setupkvm()))
     panic("Not enough memory for per process page directory!\n");
 
+//<<<<<<< HEAD
   /* Setup User Stack */
 	int insert, index;
 	struct PageInfo *newStack;
@@ -132,6 +160,8 @@ int task_create()
 			return -1;
 		}
 	}
+//=======
+//>>>>>>> a34fb2bb00b319f01d75d07a1c27561390a0eea0
 	/* Setup Trapframe */
 	memset( &(ts->tf), 0, sizeof(ts->tf));
 
@@ -141,13 +171,32 @@ int task_create()
 	ts->tf.tf_ss = GD_UD | 0x03;
 	ts->tf.tf_esp = USTACKTOP-PGSIZE;
 
+  /* Setup User Stack 
+	int j;
+  for (j = 0; j < USR_STACK_SIZE; j += PGSIZE)
+  {
+    p = page_alloc(ALLOC_ZERO);
+    if (!p || page_insert(ts->pgdir, p, (void*)(USTACKTOP-USR_STACK_SIZE+j), PTE_W|PTE_U))
+      panic("Not enough memory for user stack!\n");
+  }
+*/
+	
 	/* Setup task structure (task_id and parent_id) */
 	ts->task_id = i;
-	ts->parent_id = 0;
+//<<<<<<< HEAD
+	//ts->parent_id = 0;
+	ts->parent_id = ((uint32_t)thiscpu->cpu_task)?thiscpu->cpu_task->task_id:0;
+/*
+=======
+	ts->state = TASK_RUNNABLE;
+	ts->parent_id = ((uint32_t)cur_task)?cur_task->task_id:0;
+>>>>>>> a34fb2bb00b319f01d75d07a1c27561390a0eea0
+*/
 	ts->remind_ticks = TIME_QUANT;
 	return i;
 }
 
+//<<<<<<< HEAD
 
 /* TODO: Lab5
  * This function free the memory allocated by kernel.
@@ -182,6 +231,26 @@ static void task_free(int pid)
 	//printk("yo\n");
 	ptable_remove(tasks[pid].pgdir);
 	pgdir_remove(tasks[pid].pgdir);
+/*
+=======
+// Free task of pid 
+static void task_free(int pid)
+{
+  lcr3(PADDR(kern_pgdir));
+  unsigned i;
+  // Free pages of user stack 
+  for (i = 0; i < USR_STACK_SIZE; i += PGSIZE)
+    page_remove(tasks[pid].pgdir, (void*)(USTACKTOP-USR_STACK_SIZE+i));
+  // Free page tables 
+  ptable_remove(tasks[pid].pgdir);
+  // Free page directory 
+  pgdir_remove(tasks[pid].pgdir);
+}
+
+void task_switch(int id)
+{
+>>>>>>> a34fb2bb00b319f01d75d07a1c27561390a0eea0
+*/
 }
 
 // Lab6 TODO
@@ -192,6 +261,7 @@ static void task_free(int pid)
 //
 void sys_kill(int pid)
 {
+//<<<<<<< HEAD
 	int cpuID = tasks[pid].cpu_id;
 	struct CpuInfo task_cpu = cpus[cpuID];
 	if (pid > 0 && pid < NR_TASKS && task_cpu.cpu_rq.total != 0)
@@ -344,11 +414,75 @@ int sys_fork()
 	
 	return pid;
 }
+/*
+=======
+	// Lab4: Died task recycele, just set task state as TASK_STOP and yield 
+  
+	if (pid > 0 && pid < NR_TASKS)
+	{
+		tasks[pid].state = TASK_STOP;
+    task_free(pid);
+		sched_yield();
+	}
+}
+void sys_kill_self()
+{
+	//Lab4: Died task recycele 
+	if ((uint32_t)cur_task)
+	{
+		cur_task->state = TASK_STOP;
+    task_free(cur_task->task_id);
+		sched_yield();
+	}
+}
 
-/* TODO: Lab5
- * We've done the initialization for you,
- * please make sure you understand the code.
- */
+int sys_fork()
+{
+	int pid = -1, i;
+  uint32_t pa_src, pa_dst, *pte_src, *pte_dst;
+	// Setup task space 
+	pid = task_create();
+	if (pid < 0 )
+		return -1;
+	
+	if ((uint32_t)cur_task)
+	{
+		// Lab4: Copy parent tf to new task 
+		tasks[pid].tf = cur_task->tf;
+	
+		// Lab4: Copy old usr_stack to new task 
+    for(i = 0; i < USR_STACK_SIZE; i += PGSIZE)
+    {
+      if((pte_src = pgdir_walk(cur_task->pgdir, (void *)(USTACKTOP-USR_STACK_SIZE+i), 0)) == 0)
+        panic("copy user stack: pte_src should exist");
+      if(!(*pte_src & PTE_P))
+        panic("copy user stack: page not present");
+      pa_src = PTE_ADDR(*pte_src);
+
+      if((pte_dst = pgdir_walk(tasks[pid].pgdir, (void *)(USTACKTOP-USR_STACK_SIZE+i), 0)) == 0)
+        panic("copy user stack: pte_dst should exist");
+      if(!(*pte_dst & PTE_P))
+        panic("copy user stack: page not present");
+      pa_dst = PTE_ADDR(*pte_dst);
+
+      memmove((char*)KADDR(pa_dst), (char*)KADDR(pa_src), PGSIZE);
+    }
+
+    // All user program use the same code for now 
+    setupuvm(tasks[pid].pgdir, (uint32_t)UTEXT_start, UTEXT_SZ);
+    setupuvm(tasks[pid].pgdir, (uint32_t)UDATA_start, UDATA_SZ);
+    setupuvm(tasks[pid].pgdir, (uint32_t)UBSS_start, UBSS_SZ);
+    setupuvm(tasks[pid].pgdir, (uint32_t)URODATA_start, URODATA_SZ);
+
+		// Lab4: Set system call's return value 
+		cur_task->tf.tf_regs.reg_eax = pid;
+		tasks[pid].tf.tf_regs.reg_eax = 0;
+	}
+>>>>>>> a34fb2bb00b319f01d75d07a1c27561390a0eea0
+
+	return pid;
+}
+*/
 void task_init()
 {
   extern int user_entry();
@@ -357,6 +491,10 @@ void task_init()
   UDATA_SZ = (uint32_t)(UDATA_end - UDATA_start);
   UBSS_SZ = (uint32_t)(UBSS_end - UBSS_start);
   URODATA_SZ = (uint32_t)(URODATA_end - URODATA_start);
+  /*printk("UText start:[%p], UText end:[%p]\n", UTEXT_start, UTEXT_end);*/
+  /*printk("UData start:[%p], UData end:[%p]\n", UDATA_start, UDATA_end);*/
+  /*printk("UBss start:[%p], UBss end:[%p]\n", UBSS_start, UBSS_end);*/
+  /*printk("URODATA start:[%p], URODATA end:[%p]\n", URODATA_start, URODATA_end);*/
 
 	/* Initial task sturcture */
 	for (i = 0; i < NR_TASKS; i++)
@@ -402,6 +540,7 @@ void task_init_percpu()
 	thiscpu->cpu_tss.ts_gs = GD_UD | 0x03;
 
 	/* Setup TSS in GDT */
+//<<<<<<< HEAD
 	gdt[(GD_TSS0 >> 3) + thiscpu->cpu_id] = SEG16(STS_T32A, (uint32_t)(&(thiscpu->cpu_tss)), sizeof(struct tss_struct) - 1, 0);
 	gdt[(GD_TSS0 >> 3) + thiscpu->cpu_id].sd_s = 0;
 
@@ -427,6 +566,23 @@ void task_init_percpu()
 	thiscpu->cpu_rq.runq[0] = i;
 	thiscpu->cpu_rq.current_index = 0;
 	thiscpu->cpu_rq.total = 1;
+/*
+=======
+	gdt[GD_TSS0 >> 3] = SEG16(STS_T32A, (uint32_t)(&tss), sizeof(struct Taskstate), 0);
+	gdt[GD_TSS0 >> 3].sd_s = 0;
+
+	// Setup first task 
+	i = task_create();
+	cur_task = &(tasks[i]);
+
+  //For user program 
+  setupuvm(cur_task->pgdir, (uint32_t)UTEXT_start, UTEXT_SZ);
+  setupuvm(cur_task->pgdir, (uint32_t)UDATA_start, UDATA_SZ);
+  setupuvm(cur_task->pgdir, (uint32_t)UBSS_start, UBSS_SZ);
+  setupuvm(cur_task->pgdir, (uint32_t)URODATA_start, URODATA_SZ);
+  cur_task->tf.tf_eip = (uint32_t)user_entry;
+>>>>>>> a34fb2bb00b319f01d75d07a1c27561390a0eea0
+*/
 	
 	/* Load GDT&LDT */
 	lgdt(&gdt_pd);

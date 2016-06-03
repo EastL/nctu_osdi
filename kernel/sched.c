@@ -2,6 +2,7 @@
 #include <kernel/cpu.h>
 #include <inc/x86.h>
 
+//<<<<<<< HEAD
 #define ctx_switch(ts) \
   do { env_pop_tf(&((ts)->tf)); } while(0)
 
@@ -40,9 +41,16 @@
 //    (cpu can only schedule tasks which in its runqueue!!) 
 //    (do not schedule idle task if there are still another process can run)	
 //
+/*
+=======
+static int index = 0;
+>>>>>>> a34fb2bb00b319f01d75d07a1c27561390a0eea0
+*/
 void sched_yield(void)
 {
+	/* Lab4: Implement a simple round-robin scheduling there */
 	extern Task tasks[];
+//<<<<<<< HEAD
 	//extern Task *cur_task;
 
 	int task_i = thiscpu->cpu_task ? (thiscpu->cpu_rq.current_index) : 0;
@@ -70,4 +78,44 @@ void sched_yield(void)
 	//if (thiscpu->cpu_task->task_id == 0)
 	//	thiscpu->cpu_task->remind_ticks = TIME_QUANT;
 	
+/*
+=======
+	extern Task *cur_task;
+	int i;
+	int next_i = 0;
+
+	i = (index +1)%NR_TASKS;
+	while (1)
+	{
+		if ((tasks[i].state == TASK_RUNNABLE))
+		{
+			next_i = i;
+			break;
+		}
+		if (++i >= NR_TASKS) i = 0;
+
+		if (index == i)
+		{
+			next_i = -1;
+			break;
+		}
+		
+
+	}
+
+	if (next_i == -1 ) //only one task can run
+		next_i = index;
+
+	if (next_i >= 0 && next_i < NR_TASKS)
+	{
+		cur_task = &(tasks[next_i]);
+		cur_task->remind_ticks = TIME_QUANT;
+		cur_task->state = TASK_RUNNING;
+		index = next_i;
+    lcr3(PADDR(cur_task->pgdir));
+		env_pop_tf(&(cur_task->tf));
+	}
+
+>>>>>>> a34fb2bb00b319f01d75d07a1c27561390a0eea0
+*/
 }

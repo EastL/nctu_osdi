@@ -10,6 +10,10 @@
 #include <kernel/timer.h>
 #include <kernel/cpu.h>
 
+#include <fs.h>
+
+extern void fs_test();
+
 extern void init_video(void);
 static void boot_aps(void);
 //extern Task *cur_task;
@@ -19,6 +23,7 @@ void kernel_main(void)
 	extern char stext[];
 	extern char etext[], end[], data_start[],rdata_end[];
 	extern void task_job();
+	int *ptr;
 
 	init_video();
   	mem_init();
@@ -32,28 +37,35 @@ void kernel_main(void)
   	syscall_init();
 	boot_aps();
 
-  printk("Kernel code base start=0x%08x to = 0x%08x\n", stext, etext);
-  printk("Readonly data start=0x%08x to = 0x%08x\n", etext, rdata_end);
-  printk("Kernel data base start=0x%08x to = 0x%08x\n", data_start, end);
+
+	printk("Kernel code base start=0x%08x to = 0x%08x\n", stext, etext);
+	printk("Readonly data start=0x%08x to = 0x%08x\n", etext, rdata_end);
+	printk("Kernel data base start=0x%08x to = 0x%08x\n", data_start, end);
+	
+	//disk_init();
+	//disk_test();
+	/*TODO Lab7: uncommend it when you finish 7.2 part */
+	//fs_test();
+	//fs_init();
 
 
-  /* Enable interrupt */
-  __asm __volatile("sti");
+	/* Enable interrupt */
+	__asm __volatile("sti");
 
-    /* Test for page fault handler */
-    //ptr = (int*)(0x12345678);
-    //*ptr = 1;
-  lcr3(PADDR(thiscpu->cpu_task->pgdir));
-  /* Move to user mode */
-  asm volatile("movl %0,%%eax\n\t" \
-  "pushl %1\n\t" \
-  "pushl %%eax\n\t" \
-  "pushfl\n\t" \
-  "pushl %2\n\t" \
-  "pushl %3\n\t" \
-  "iret\n" \
-  :: "m" (thiscpu->cpu_task->tf.tf_esp), "i" (GD_UD | 0x03), "i" (GD_UT | 0x03), "m" (thiscpu->cpu_task->tf.tf_eip)
-  :"ax");
+	/* Test for page fault handler */
+	//ptr = (int*)(0x12345678);
+ 	//*ptr = 1;
+	lcr3(PADDR(thiscpu->cpu_task->pgdir));
+	/* Move to user mode */
+	asm volatile("movl %0,%%eax\n\t" \
+	"pushl %1\n\t" \
+  	"pushl %%eax\n\t" \
+  	"pushfl\n\t" \
+  	"pushl %2\n\t" \
+	"pushl %3\n\t" \
+  	"iret\n" \
+  	:: "m" (thiscpu->cpu_task->tf.tf_esp), "i" (GD_UD | 0x03), "i" (GD_UT | 0x03), "m" (thiscpu->cpu_task->tf.tf_eip)
+  	:"ax");
 }
 
 // While boot_aps is booting a given CPU, it communicates the per-core
