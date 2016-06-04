@@ -3,6 +3,7 @@
 #include <fat/diskio.h>
 #include <fat/ff.h>
 #include <kernel/drv/disk.h>
+#include <kernel/timer.h>
 
 #define DISK_ID 1
 
@@ -58,7 +59,7 @@ DRESULT disk_read (BYTE pdrv, BYTE* buff, DWORD sector, UINT count)
     //printk("bufa:0x%x\n", buff[0]); 
     //printk("buf:0x%x\n", buf[510]); 
     int ide_status;
-    ide_status = ide_read_sectors(pdrv, count, sector, (unsigned int)buff);
+    ide_status = ide_read_sectors(DISK_ID, count, sector, (unsigned int)buff);
     //printk("bufb:0x%x\n", buf[510]); 
     //printk("ide_status:%d\n", ide_status);
     return ide_status;
@@ -83,7 +84,7 @@ DRESULT disk_write (BYTE pdrv, const BYTE* buff, DWORD sector, UINT count)
     UINT cur_sector = sector;
     
     printk("disk_write %d sector %d count %d\n", pdrv, sector, count);
-    ide_write_sectors(pdrv, count, sector, (unsigned int)ptr);
+    ide_write_sectors(DISK_ID, count, sector, (unsigned int)ptr);
     /* TODO */    
     return 0;
 }
@@ -106,7 +107,7 @@ DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void* buff)
     /* TODO */
     switch(cmd) {
 	case GET_SECTOR_COUNT:
-	    *retVal = ide_devices[pdrv].Size;
+	    *retVal = ide_devices[DISK_ID].Size;
 	    break;
 
 	case GET_BLOCK_SIZE:
@@ -125,5 +126,7 @@ DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void* buff)
 DWORD get_fattime (void)
 {
     /* TODO */
-    return 0;
+    int32_t tick;
+    tick = sys_get_ticks();
+    return (DWORD)tick;
 }
