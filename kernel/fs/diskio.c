@@ -17,7 +17,7 @@
   */
 DSTATUS disk_initialize (BYTE pdrv)
 {
-    //printk("disk_initialize %d\n", pdrv);
+    printk("disk_initialize %d\n", pdrv);
     /* TODO */
     return 0;
 }
@@ -31,7 +31,7 @@ DSTATUS disk_initialize (BYTE pdrv)
   */
 DSTATUS disk_status (BYTE pdrv)
 {
-    //printk("disk_status\n");
+    printk("disk_status\n");
     /* TODO */
     return 0;
 }
@@ -52,9 +52,16 @@ DRESULT disk_read (BYTE pdrv, BYTE* buff, DWORD sector, UINT count)
     int i = count;
     BYTE *ptr = buff;
     UINT cur_sector = sector;
+    BYTE buf[512];
     
-    //printk("disk_read %d sector %d count %d\n", pdrv, sector, count);
-    
+    printk("disk_read %d sector %d count %d\n", pdrv, sector, count);
+    //printk("bufa:0x%x\n", buff[0]); 
+    //printk("buf:0x%x\n", buf[510]); 
+    int ide_status;
+    ide_status = ide_read_sectors(pdrv, count, sector, (unsigned int)buff);
+    //printk("bufb:0x%x\n", buf[510]); 
+    //printk("ide_status:%d\n", ide_status);
+    return ide_status;
     /* TODO */
 }
 
@@ -75,9 +82,10 @@ DRESULT disk_write (BYTE pdrv, const BYTE* buff, DWORD sector, UINT count)
     BYTE *ptr = buff;
     UINT cur_sector = sector;
     
-    //printk("disk_write %d sector %d count %d\n", pdrv, sector, count);
+    printk("disk_write %d sector %d count %d\n", pdrv, sector, count);
+    ide_write_sectors(pdrv, count, sector, (unsigned int)ptr);
     /* TODO */    
-
+    return 0;
 }
 
 /**
@@ -94,8 +102,19 @@ DRESULT disk_write (BYTE pdrv, const BYTE* buff, DWORD sector, UINT count)
 DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void* buff)
 {
     uint32_t *retVal = (uint32_t *)buff;
-    //printk("disk_ioctl drv=%d cmd=%d\n", pdrv, cmd);
-    /* TODO */    
+    printk("disk_ioctl drv=%d cmd=%d\n", pdrv, cmd);
+    /* TODO */
+    switch(cmd) {
+	case GET_SECTOR_COUNT:
+	    *retVal = ide_devices[pdrv].Size;
+	    break;
+
+	case GET_BLOCK_SIZE:
+	    *retVal = 512;
+	    break;
+    }
+    
+    return 0;    
 }
 
 

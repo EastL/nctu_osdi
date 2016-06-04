@@ -42,11 +42,11 @@ void kernel_main(void)
 	printk("Readonly data start=0x%08x to = 0x%08x\n", etext, rdata_end);
 	printk("Kernel data base start=0x%08x to = 0x%08x\n", data_start, end);
 	
-	//disk_init();
-	//disk_test();
+	disk_init();
+	disk_test();
 	/*TODO Lab7: uncommend it when you finish 7.2 part */
-	//fs_test();
-	//fs_init();
+	fs_init();
+	fs_test();
 
 
 	/* Enable interrupt */

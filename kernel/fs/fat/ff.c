@@ -2882,6 +2882,7 @@ BYTE check_fs (	/* 0:FAT, 1:exFAT, 2:Valid BS but not FAT, 3:Not a BS, 4:Disk er
 	if (ld_word(&fs->win[BS_55AA]) != 0xAA55) return 3;	/* Check boot record signature (always placed at offset 510 even if the sector size is >512) */
 
 	if ((ld_dword(&fs->win[BS_FilSysType]) & 0xFFFFFF) == 0x544146) return 0;	/* Check "FAT" string */
+	//printk("BS_FileSysType:%x\n", ld_dword(&fs->win[BS_FilSysType]));
 	if ((ld_dword(&fs->win[BS_FilSysType32]) & 0xFFFFFF) == 0x544146) return 0;	/* Check "FAT" string */
 #if _FS_EXFAT
 	if (!mem_cmp(&fs->win[BS_OEMName], "EXFAT   ", 8)) return 1;
@@ -2919,6 +2920,7 @@ FRESULT find_volume (	/* FR_OK(0): successful, !=0: any error occurred */
 
 	/* Check if the file system object is valid or not */
 	fs = FatFs[vol];					/* Get pointer to the file system object */
+	//printk("win:%x\n", fs->win[0]);
 	if (!fs) return FR_NOT_ENABLED;		/* Is the file system object available? */
 
 	ENTER_FF(fs);						/* Lock the volume */
@@ -2957,6 +2959,7 @@ FRESULT find_volume (	/* FR_OK(0): successful, !=0: any error occurred */
 	if (fmt == 2 || (fmt < 2 && LD2PT(vol))) {	/* Not an FAT boot sector or forced partition number */
 		for (i = 0; i < 4; i++) {			/* Get partition offset */
 			pt = fs->win + MBR_Table + i * SZ_PTE;
+			//printk("pt:%d\n", MBR_Table + i * SZ_PTE);
 			br[i] = pt[4] ? ld_dword(&pt[8]) : 0;
 		}
 		i = LD2PT(vol);						/* Partition number: 0:auto, 1-4:forced */
@@ -3185,6 +3188,7 @@ FRESULT f_mount (
 #endif
 	}
 	FatFs[vol] = fs;					/* Register new fs object */
+	//printk("f_mount:%x\n", FatFs[vol]->win[0]);
 
 	if (!fs || opt != 1) return FR_OK;	/* Do not mount now, it will be mounted later */
 
@@ -5199,6 +5203,7 @@ FRESULT f_mkfs (
 	} else {
 		/* Create a single-partition in this function */
 		if (disk_ioctl(pdrv, GET_SECTOR_COUNT, &n_vol) != RES_OK || n_vol < 128) {
+			//printk("n_vol:%d\n", n_vol);
 			return FR_DISK_ERR;
 		}
 		b_vol = (sfd) ? 0 : 63;		/* Volume start sector */
