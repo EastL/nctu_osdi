@@ -15,13 +15,31 @@ extern struct fs_dev fat_fs;
 */
 int fat_mount(struct fs_dev *fs, const void* data)
 {
-
+	char *path;
+	int i;
+/*
+	printk("fat path : %s\n", fat_fs.path);
+	printk("siz of %d\n", sizeof(fat_fs.path));
+	for (i = 0; i < 64; i++) {
+		if (fat_fs.path[i] == '\0'){
+			printk("P:%c\n", fat_fs.path[i]);
+			break;
+		}
+		else{
+			printk("P:%c\n", fat_fs.path[i]);
+			*(path + i) = fat_fs.path[i];
+		}
+	}
+*/
+	int res;
+	res = f_mount(&(fs->data), &(fs->opath), 1);
+	return res;
 }
 
 /* Note: Just call f_mkfs at root path '/' */
 int fat_mkfs(const char* device_name)
 {
-
+	return f_mkfs("/", 0, 0);
 }
 
 /* Note: Convert the POSIX's open flag to elmfat's flag.
@@ -31,24 +49,69 @@ int fat_mkfs(const char* device_name)
 */
 int fat_open(struct fs_fd* file)
 {
+	unsigned char open_mode;
+	uint32_t flag = file->flags;
+	open_mode = 0;
+	if (flag & O_RDONLY) open_mode |= (FA_OPEN_EXISTING | FA_READ);
+	if (flag & O_WRONLY)  open_mode |= (FA_OPEN_ALWAYS | FA_WRITE);
+	if (flag & O_RDWR) open_mode |= (FA_OPEN_ALWAYS | FA_READ | FA_WRITE);
+	if (flag & O_ACCMODE) open_mode |= 0;
+	if (flag & O_CREAT) open_mode |= FA_CREATE_NEW;
+	if (flag & O_EXCL) open_mode |= 0;
+	if (flag & O_TRUNC || flag & O_APPEND) open_mode |= FA_CREATE_ALWAYS;
+
+	return f_open(&(file->data), &(file->path), open_mode);
+	/*switch(file->flags) {
+		case O_RDONLY:
+			open_mode = FA_OPEN_EXISTING | FA_READ;
+		case O_WRONLY:
+			open_mode = FA_OPEN_ALWAYS | FA_WRITE;
+		case O_RDWR:
+			open_mode = FA_OPEN_ALWAYS | FA_READ | FA_WRITE;
+		case O_ACCMODE:
+			open_mode = 0;
+		case O_CREAT:
+			open_mode = FA_CREATE_NEW;
+		case O_EXCL:
+			open_mode = 0;
+		case O_TRUNC:
+			open_mode = FA_CREATE_ALWAYS;
+		case O_APPEND:
+			open_mode = FA_CREATE_ALWAYS;
+		case O_DIRECTORY:
+			open_mode = FA_OPEN_EXISTING;
+	}*/
 }
 
 int fat_close(struct fs_fd* file)
 {
-
+	return f_close(&(file->data));
 }
 int fat_read(struct fs_fd* file, void* buf, size_t count)
 {
-
+	unsigned int bw;
+	return f_read(&(file->data), &(buf), count, &bw);
 }
 int fat_write(struct fs_fd* file, const void* buf, size_t count)
 {
+	unsigned int bw;
+	return f_write(&(file->data), &(buf), count, &bw);
 }
 int fat_lseek(struct fs_fd* file, off_t offset)
 {
+	return f_lseek(&(file->data), offset);
 }
 int fat_unlink(struct fs_fd* file, const char *pathname)
 {
+	file->flags = 0;
+        file->size = 0;
+        file->pos = 0;
+        file->type = 0;
+        file->ref_count = 0;
+        //fd_table[i].data = &file_objs[i];
+        //fd_table[i].fs = &fat_fs;
+        return f_unlink(&pathname);
+
 }
 
 struct fs_ops elmfat_ops = {

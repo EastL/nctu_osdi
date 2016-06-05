@@ -10,6 +10,7 @@ struct fs_dev
 	uint32_t dev_id;		/* Attached device */
 
 	char  path[32];				/* File system mount point */
+	char *opath;
 	const struct fs_ops* ops;	/* Operations for file system type */
 
 	void *data;				/* Specific file system data */
@@ -36,7 +37,7 @@ struct fs_ops
 {
     char *dev_name;
     /* mount and unmount file system */
-    int (*mount)	(struct fs_dev* fs, unsigned long rwflag, const void* data);
+    int (*mount)	(struct fs_dev* fs, /*unsigned long rwflag,*/ const void* data);
     //int (*unmount)	(struct fs_dev* fs);
 
     /* Volume Management */
