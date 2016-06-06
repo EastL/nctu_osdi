@@ -32,7 +32,7 @@ int fat_mount(struct fs_dev *fs, const void* data)
 	}
 */
 	int res;
-	res = f_mount(&(fs->data), &(fs->opath), 1);
+	res = f_mount((fs->data), (fs->opath), 1);
 	return res;
 }
 
@@ -60,7 +60,7 @@ int fat_open(struct fs_fd* file)
 	if (flag & O_EXCL) open_mode |= 0;
 	if (flag & O_TRUNC || flag & O_APPEND) open_mode |= FA_CREATE_ALWAYS;
 
-	return f_open(&(file->data), &(file->path), open_mode);
+	return f_open((file->data), (file->path), open_mode);
 	/*switch(file->flags) {
 		case O_RDONLY:
 			open_mode = FA_OPEN_EXISTING | FA_READ;
@@ -85,25 +85,25 @@ int fat_open(struct fs_fd* file)
 
 int fat_close(struct fs_fd* file)
 {
-	return f_close(&(file->data));
+	return f_close(file->data);
 }
 int fat_read(struct fs_fd* file, void* buf, size_t count)
 {
 	unsigned int bw;
-	return f_read(&(file->data), &(buf), count, &bw);
+	return f_read(file->data, buf, count, &bw);
 }
 int fat_write(struct fs_fd* file, const void* buf, size_t count)
 {
 	unsigned int bw;
-	return f_write(&(file->data), &(buf), count, &bw);
+	return f_write(file->data, buf, count, &bw);
 }
 int fat_lseek(struct fs_fd* file, off_t offset)
 {
-	return f_lseek(&(file->data), offset);
+	return f_lseek(file->data, offset);
 }
 int fat_unlink(/*struct fs_fd* file,*/ const char *pathname)
 {
-        return f_unlink(&pathname);
+        return f_unlink(pathname);
 }
 
 struct fs_ops elmfat_ops = {
