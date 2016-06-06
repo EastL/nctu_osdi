@@ -101,17 +101,9 @@ int fat_lseek(struct fs_fd* file, off_t offset)
 {
 	return f_lseek(&(file->data), offset);
 }
-int fat_unlink(struct fs_fd* file, const char *pathname)
+int fat_unlink(/*struct fs_fd* file,*/ const char *pathname)
 {
-	file->flags = 0;
-        file->size = 0;
-        file->pos = 0;
-        file->type = 0;
-        file->ref_count = 0;
-        //fd_table[i].data = &file_objs[i];
-        //fd_table[i].fs = &fat_fs;
         return f_unlink(&pathname);
-
 }
 
 struct fs_ops elmfat_ops = {

@@ -88,7 +88,7 @@ int file_lseek(struct fs_fd* fd, off_t offset)
 }
 int file_unlink(const char *path)
 {
-	//fat_fs.ops->unlink();
+	fat_fs.ops->unlink(&path);
 }
 
 
