@@ -18,7 +18,7 @@
   */
 DSTATUS disk_initialize (BYTE pdrv)
 {
-    printk("disk_initialize %d\n", pdrv);
+    //printk("disk_initialize %d\n", pdrv);
     /* TODO */
     return 0;
 }
@@ -32,7 +32,7 @@ DSTATUS disk_initialize (BYTE pdrv)
   */
 DSTATUS disk_status (BYTE pdrv)
 {
-    printk("disk_status\n");
+    //printk("disk_status\n");
     /* TODO */
     return 0;
 }
@@ -102,7 +102,7 @@ DRESULT disk_write (BYTE pdrv, const BYTE* buff, DWORD sector, UINT count)
 DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void* buff)
 {
     uint32_t *retVal = (uint32_t *)buff;
-    printk("disk_ioctl drv=%d cmd=%d\n", pdrv, cmd);
+    //printk("disk_ioctl drv=%d cmd=%d\n", pdrv, cmd);
     /* TODO */
     switch(cmd) {
 	case GET_SECTOR_COUNT:

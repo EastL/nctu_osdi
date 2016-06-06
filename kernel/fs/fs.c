@@ -37,7 +37,6 @@ int fs_init()
         fd_table[i].data = &file_objs[i];
         fd_table[i].fs = &fat_fs;
     }
-    printk("aaaaaaaaaaaaaaaaaaaa%x\n", fd_table[0].data);
     
     /* Mount fat file system at "/" */
     /* Check need mkfs or not */
@@ -65,17 +64,17 @@ int fs_mount(const char* device_name, const char* path, const void* data)
 int file_read(struct fs_fd* fd, void *buf, size_t len)
 {
 	int ret = fat_fs.ops->read(fd, buf, len);
-	printk("read ret:%d\n", ret);
+	//printk("read ret:%d\n", ret);
 	return ret;
 }
 
 int file_write(struct fs_fd* fd, const void *buf, size_t len)
 {
-	printk("buf:%s\n", buf);
-	printk("size:%d\n", len);
+	//printk("buf:%s\n", buf);
+	//printk("size:%d\n", len);
 	int ret;
 	ret = fat_fs.ops->write(fd, buf, len);
-	printk("ret:%d\n", ret);
+	//printk("ret:%d\n", ret);
 	return ret;
 }
 

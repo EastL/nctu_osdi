@@ -30,8 +30,15 @@ void fs_test()
     f_write(&fil, "Hello, World!\r\n", 15, &bw);
 
     /* Close the file */
+    char buf[100];
+    
     f_close(&fil);
+    res = f_open(&fil, "hello.txt", FA_READ);
+    printk("open1:%d\n", res);
+    res = f_read(&fil, buf, 20, &bw);
+    printk("open:%d\n", res);
+    printk("%s\n", buf);
 
     /* Unregister work area */
-    f_mount(0, "", 0);
+    //f_mount(0, "", 0);
 }

@@ -13,10 +13,11 @@ int sys_open(const char *file, int flags, int mode)
 {
     //We dont care the mode.
 /* TODO */
-	int fd = -1;
-	int i;
 	struct fs_fd* fd_file;
 	extern struct fs_fd fd_table[FS_FD_MAX];
+	int fd = -1;
+/*
+	int i;
 	for (i = 0; i < FS_FD_MAX; i++) {
 		if (fd_table[i].opath == file) {
 			fd = i;
@@ -24,7 +25,7 @@ int sys_open(const char *file, int flags, int mode)
 			break;
 		}
 	}
-	
+*/	
 	if (fd == -1) {
 		fd = fd_new();
 		fd_file = fd_get(fd);
@@ -36,8 +37,8 @@ int sys_open(const char *file, int flags, int mode)
 	fd_put(fd_file);
 	//printk("sys_fd open:%d\n", fd);
 	//printk("open ret:%d\n", ret);
-	printk("obj pos%x\n", (fd_table[fd].data));
-	printk("act obj pos%x\n", &(file_objs[fd]));
+	//printk("flags:%d\n", flags);
+	//printk("sysflags:%d\n", mode);
 	
 	return fd;
 }
@@ -50,6 +51,7 @@ int sys_close(int fd)
 	int ret;
 	ret = file_close(fd_file);
 	fd_put(fd_file);
+	fd_put(fd_file);
 	return ret;
 }
 int sys_read(int fd, void *buf, size_t len)
@@ -59,7 +61,8 @@ int sys_read(int fd, void *buf, size_t len)
 	fd_file = fd_get(fd);
 	int ret = file_read(fd_file, buf, len);
 	fd_put(fd_file);
-	printk("sys_fd read:%d\n", fd);
+	//printk("sys_fd ret:%d\n", ret);
+	//printk("sys_fd obj:%x\n", fd_file->data);
 	return ret;
 }
 int sys_write(int fd, const void *buf, size_t len)
@@ -69,7 +72,8 @@ int sys_write(int fd, const void *buf, size_t len)
 	fd_file = fd_get(fd);
 	int ret = file_write(fd_file, buf, len);
 	fd_put(fd_file);
-	printk("sys_fd write:%d\n", fd);
+	//printk("sys_fd write:%d\n", fd);
+	if (ret > 0) fd_file->size += ret;
 	return ret;
 }
 
@@ -79,7 +83,14 @@ off_t sys_lseek(int fd, off_t offset, int whence)
 /* TODO */
 	struct fs_fd* fd_file;
 	fd_file = fd_get(fd);
-	int ret = file_lseek(fd_file, offset);
+
+	off_t new_offset;
+	if (whence == SEEK_SET) new_offset = offset;
+	else if (whence == SEEK_CUR) new_offset = fd_file->pos + offset;
+	else if (whence == SEEK_END) new_offset = fd_file->size + offset;
+
+	printk("size%d\n", fd_file->size);
+	int ret = file_lseek(fd_file, new_offset);
 	fd_put(fd_file);
 	return ret;
 }
