@@ -68,6 +68,8 @@ int file_read(struct fs_fd* fd, void *buf, size_t len)
 
 int file_write(struct fs_fd* fd, const void *buf, size_t len)
 {
+	printk("buf:%s\n", buf);
+	printk("size:%d\n", len);
 	fat_fs.ops->write(fd, buf, len);
 }
 

@@ -27,21 +27,21 @@ int sys_close(int fd)
 	struct fs_fd* fd_file;
 	fd_file = fd_get(fd);
 	fd_put(&fd_file);
-	return file_close(&fd_file);
+	return file_close(fd_file);
 }
 int sys_read(int fd, void *buf, size_t len)
 {
 /* TODO */
 	struct fs_fd* fd_file;
 	fd_file = fd_get(fd);
-	return file_read(&fd_file, &buf, len);
+	return file_read(fd_file, buf, len);
 }
 int sys_write(int fd, const void *buf, size_t len)
 {
 /* TODO */
 	struct fs_fd* fd_file;
 	fd_file = fd_get(fd);
-	return file_write(&fd_file, &buf, len);
+	return file_write(fd_file, buf, len);
 }
 
 /* Note: Check the whence parameter and calcuate the new offset value before do file_seek() */
@@ -50,13 +50,13 @@ off_t sys_lseek(int fd, off_t offset, int whence)
 /* TODO */
 	struct fs_fd* fd_file;
 	fd_file = fd_get(fd);
-	file_lseek(&fd_file, offset);
+	file_lseek(fd_file, offset);
 }
 
 int sys_unlink(const char *pathname)
 {
 /* TODO */ 
-	file_unlink(&pathname);
+	file_unlink(pathname);
 }
 
 

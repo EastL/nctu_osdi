@@ -95,6 +95,8 @@ int fat_read(struct fs_fd* file, void* buf, size_t count)
 int fat_write(struct fs_fd* file, const void* buf, size_t count)
 {
 	unsigned int bw;
+	printk("buf:%s\n", buf);
+	printk("count:%d\n", count);
 	return f_write(file->data, buf, count, &bw);
 }
 int fat_lseek(struct fs_fd* file, off_t offset)
