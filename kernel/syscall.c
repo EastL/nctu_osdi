@@ -39,6 +39,11 @@ void sys_sleep(uint32_t ticks)
 	sched_yield();
 }
 
+int sys_getdents(const char *path, const char *buf)
+{
+	
+}
+
 int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
 {
 //<<<<<<< HEAD
@@ -145,7 +150,9 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
 	break;
         case SYS_unlink:
 		retVal = sys_unlink((const char*)a1);
-            //retVal = -1; //Not yet implemented
+	break;
+        case SYS_getdents:
+		retVal = sys_getdents(a1, a2);
         break;
 /*
 =======

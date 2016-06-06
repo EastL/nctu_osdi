@@ -21,6 +21,7 @@ int spinlocktest(int argc, char **argv);
 int filetest(int argc, char **argv);
 int fs_seek_test(int argc, char **argv);
 int fs_speed_test(int argc, char **argv);
+void list_segment(int argc, char **argv);
 //>>>>>>> a34fb2bb00b319f01d75d07a1c27561390a0eea0
 
 struct Command commands[] = {
@@ -35,8 +36,9 @@ struct Command commands[] = {
   
   { "filetest", "Test create file", filetest },
   { "fs_seek_test", "Test seek file", fs_seek_test },
-  { "fs_speed_test", "Test R/W speed", fs_speed_test}
+  { "fs_speed_test", "Test R/W speed", fs_speed_test},
 //>>>>>>> a34fb2bb00b319f01d75d07a1c27561390a0eea0
+  { "ls", "List segment", list_segment}
 };
 const int NCOMMANDS = (sizeof(commands)/sizeof(commands[0]));
 
@@ -358,6 +360,31 @@ int fs_speed_test(int argc, char **argv)
         /* close file */
         close(fd);
     }
+}
+
+void list_segment(int argc, char **argv)
+{
+	char buf[BUFSIZE];
+	char *path;
+	if (argv[1] == NULL)
+	{
+		cprintf("File or path not exist.\n");
+		return;
+	}
+
+	else
+		path = argv[1];
+
+	int ret = -1;
+	//ret = getdents(path, buf);
+	if (ret != 0)
+	{
+		cprintf("File or path not exist.\n");
+		return;
+	}
+
+	else
+		cprintf("%s\n", buf);
 }
 
 void shell()
