@@ -54,7 +54,7 @@ int fat_open(struct fs_fd* file)
 	open_mode = 0;
 	if (flag == 0) open_mode |= (/*FA_OPEN_EXISTING |*/ FA_READ);
 	if (flag & O_WRONLY)  open_mode |= FA_WRITE;
-	if (flag & O_RDWR) open_mode |= (FA_OPEN_ALWAYS | FA_READ | FA_WRITE);
+	if (flag & O_RDWR) open_mode |= (FA_READ | FA_WRITE);
 	if (flag & O_ACCMODE) open_mode |= 0;
 	if (flag & O_CREAT) open_mode |= FA_CREATE_NEW;
 	if (flag & O_EXCL) open_mode |= 0;
@@ -93,9 +93,9 @@ int fat_close(struct fs_fd* file)
 int fat_read(struct fs_fd* file, void* buf, size_t count)
 {
 	unsigned int bw;
-	char t[100];
-	int ret = f_read(file->data, t, count, &bw);
-	strncpy(buf, t, count);
+	//char t[100];
+	int ret = f_read(file->data, buf, count, &bw);
+	//strncpy(buf, t, count);
 	if (ret != 0)
 		return -ret;
 	else

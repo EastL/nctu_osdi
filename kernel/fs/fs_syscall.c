@@ -51,7 +51,6 @@ int sys_close(int fd)
 	int ret;
 	ret = file_close(fd_file);
 	fd_put(fd_file);
-	fd_put(fd_file);
 	return ret;
 }
 int sys_read(int fd, void *buf, size_t len)
@@ -63,6 +62,7 @@ int sys_read(int fd, void *buf, size_t len)
 	fd_put(fd_file);
 	//printk("sys_fd ret:%d\n", ret);
 	//printk("sys_fd obj:%x\n", fd_file->data);
+	//printk("sys_fd read:%d\n", fd);
 	return ret;
 }
 int sys_write(int fd, const void *buf, size_t len)
@@ -70,10 +70,10 @@ int sys_write(int fd, const void *buf, size_t len)
 /* TODO */
 	struct fs_fd* fd_file;
 	fd_file = fd_get(fd);
+	fd_file->size += len;
 	int ret = file_write(fd_file, buf, len);
 	fd_put(fd_file);
 	//printk("sys_fd write:%d\n", fd);
-	if (ret > 0) fd_file->size += ret;
 	return ret;
 }
 
@@ -89,7 +89,7 @@ off_t sys_lseek(int fd, off_t offset, int whence)
 	else if (whence == SEEK_CUR) new_offset = fd_file->pos + offset;
 	else if (whence == SEEK_END) new_offset = fd_file->size + offset;
 
-	printk("size%d\n", fd_file->size);
+	//printk("ooooooooo%d\n", new_offset);
 	int ret = file_lseek(fd_file, new_offset);
 	fd_put(fd_file);
 	return ret;
