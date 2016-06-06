@@ -55,7 +55,7 @@ DRESULT disk_read (BYTE pdrv, BYTE* buff, DWORD sector, UINT count)
     UINT cur_sector = sector;
     BYTE buf[512];
     
-    printk("disk_read %d sector %d count %d\n", pdrv, sector, count);
+    //printk("disk_read %d sector %d count %d\n", pdrv, sector, count);
     //printk("bufa:0x%x\n", buff[0]); 
     //printk("buf:0x%x\n", buf[510]); 
     int ide_status;
@@ -83,10 +83,9 @@ DRESULT disk_write (BYTE pdrv, const BYTE* buff, DWORD sector, UINT count)
     BYTE *ptr = buff;
     UINT cur_sector = sector;
     
-    printk("disk_write %d sector %d count %d\n", pdrv, sector, count);
-    ide_write_sectors(DISK_ID, count, sector, (unsigned int)ptr);
+    //printk("disk_write %d sector %d count %d\n", pdrv, sector, count);
+    return ide_write_sectors(DISK_ID, count, sector, (unsigned int)ptr);
     /* TODO */    
-    return 0;
 }
 
 /**

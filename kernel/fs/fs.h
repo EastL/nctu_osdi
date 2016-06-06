@@ -20,6 +20,7 @@ struct fs_dev
 struct fs_fd
 {
     char path[64];					/* Name (below mount point) */
+    char *opath;
     int type;					/* Type (regular or socket) */
     int ref_count;				/* Descriptor reference count */
 

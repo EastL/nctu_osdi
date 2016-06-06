@@ -37,6 +37,7 @@ int fs_init()
         fd_table[i].data = &file_objs[i];
         fd_table[i].fs = &fat_fs;
     }
+    printk("aaaaaaaaaaaaaaaaaaaa%x\n", fd_table[0].data);
     
     /* Mount fat file system at "/" */
     /* Check need mkfs or not */
@@ -63,34 +64,39 @@ int fs_mount(const char* device_name, const char* path, const void* data)
 
 int file_read(struct fs_fd* fd, void *buf, size_t len)
 {
-	fat_fs.ops->read(fd, buf, len);
+	int ret = fat_fs.ops->read(fd, buf, len);
+	printk("read ret:%d\n", ret);
+	return ret;
 }
 
 int file_write(struct fs_fd* fd, const void *buf, size_t len)
 {
 	printk("buf:%s\n", buf);
 	printk("size:%d\n", len);
-	fat_fs.ops->write(fd, buf, len);
+	int ret;
+	ret = fat_fs.ops->write(fd, buf, len);
+	printk("ret:%d\n", ret);
+	return ret;
 }
 
 /* Note: Before call call fat_fs.ops->open() you may copy the path and flags parameters into fd object structure */
 int file_open(struct fs_fd* fd, const char *path, int flags)
 {
 	fd->flags = flags;
-	fat_fs.ops->open(fd);
+	return fat_fs.ops->open(fd);
 }
 
 int file_close(struct fs_fd* fd)
 {
-	fat_fs.ops->close(fd);
+	return fat_fs.ops->close(fd);
 }
 int file_lseek(struct fs_fd* fd, off_t offset)
 {
-	fat_fs.ops->lseek(fd, offset);
+	return fat_fs.ops->lseek(fd, offset);
 }
 int file_unlink(const char *path)
 {
-	fat_fs.ops->unlink(path);
+	return fat_fs.ops->unlink(path);
 }
 
 

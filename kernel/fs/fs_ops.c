@@ -52,15 +52,15 @@ int fat_open(struct fs_fd* file)
 	unsigned char open_mode;
 	uint32_t flag = file->flags;
 	open_mode = 0;
-	if (flag & O_RDONLY) open_mode |= (FA_OPEN_EXISTING | FA_READ);
-	if (flag & O_WRONLY)  open_mode |= (FA_OPEN_ALWAYS | FA_WRITE);
+	if (flag & O_RDONLY) open_mode |=  FA_READ;
+	if (flag & O_WRONLY)  open_mode |= FA_WRITE;
 	if (flag & O_RDWR) open_mode |= (FA_OPEN_ALWAYS | FA_READ | FA_WRITE);
 	if (flag & O_ACCMODE) open_mode |= 0;
 	if (flag & O_CREAT) open_mode |= FA_CREATE_NEW;
 	if (flag & O_EXCL) open_mode |= 0;
 	if (flag & O_TRUNC || flag & O_APPEND) open_mode |= FA_CREATE_ALWAYS;
 
-	return f_open((file->data), (file->path), open_mode);
+	return f_open((file->data), (file->opath), open_mode);
 	/*switch(file->flags) {
 		case O_RDONLY:
 			open_mode = FA_OPEN_EXISTING | FA_READ;
@@ -90,14 +90,23 @@ int fat_close(struct fs_fd* file)
 int fat_read(struct fs_fd* file, void* buf, size_t count)
 {
 	unsigned int bw;
-	return f_read(file->data, buf, count, &bw);
+	int ret = f_read(file->data, buf, count, &bw);
+	printk("fat:%x\n", file->data);
+	if (ret != 0)
+		return ret;
+	else
+		return bw;
 }
 int fat_write(struct fs_fd* file, const void* buf, size_t count)
 {
 	unsigned int bw;
-	printk("buf:%s\n", buf);
-	printk("count:%d\n", count);
-	return f_write(file->data, buf, count, &bw);
+	int ret;
+	ret = f_write(file->data, buf, count, &bw);
+	printk("size%d\n", sizeof(*(file->data)));
+	if (ret != 0)
+		return ret;
+	else
+		return bw;
 }
 int fat_lseek(struct fs_fd* file, off_t offset)
 {
