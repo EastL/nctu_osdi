@@ -35,6 +35,12 @@ int sys_open(const char *file, int flags, int mode)
 	extern FIL file_objs[FS_FD_MAX];
 	int ret = file_open(fd_file, file, flags);
 	fd_put(fd_file);
+
+	//maintain obj size
+	FIL *object;
+	object = fd_file->data;
+	size_t size = object->obj.objsize;
+	fd_file->size = size;
 	//printk("sys_fd open:%d\n", fd);
 	//printk("open ret:%d\n", ret);
 	//printk("flags:%d\n", flags);
@@ -48,9 +54,18 @@ int sys_close(int fd)
 /* TODO */
 	struct fs_fd* fd_file;
 	fd_file = fd_get(fd);
+	
+	//clear size and pos
+	fd_file->size = 0;
+	fd_file->pos = 0;
+
 	int ret;
 	ret = file_close(fd_file);
 	fd_put(fd_file);
+
+	//clear obj
+	fd_put(fd_file);
+
 	return ret;
 }
 int sys_read(int fd, void *buf, size_t len)
@@ -70,10 +85,16 @@ int sys_write(int fd, const void *buf, size_t len)
 /* TODO */
 	struct fs_fd* fd_file;
 	fd_file = fd_get(fd);
-	fd_file->size += len;
+
 	int ret = file_write(fd_file, buf, len);
 	fd_put(fd_file);
-	//printk("sys_fd write:%d\n", fd);
+
+	//maintain obj size
+	FIL *object;
+	object = fd_file->data;
+	size_t size = object->obj.objsize;
+	fd_file->size = size;
+
 	return ret;
 }
 
