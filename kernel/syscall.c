@@ -39,7 +39,7 @@ void sys_sleep(uint32_t ticks)
 	sched_yield();
 }
 
-int sys_getdents(const char *path, const char *buf)
+int sys_getdents(const char *path, const void *buf)
 {
 	
 }

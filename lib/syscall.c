@@ -55,7 +55,7 @@ SYSCALL_3ARG(read, int, int, void *, size_t)
 SYSCALL_3ARG(write, int, int, const void *, size_t)
 SYSCALL_3ARG(lseek, off_t, int, off_t, int)
 SYSCALL_1ARG(unlink, int, const char *)
-SYSCALL_2ARG(getdents, int, const char *, const char *)
+SYSCALL_2ARG(getdents, int, const char *, const void *)
 
 /////////////////////////////
 SYSCALL_NOARG(getc, int)

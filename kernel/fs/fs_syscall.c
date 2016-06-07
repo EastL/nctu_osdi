@@ -101,6 +101,31 @@ int sys_unlink(const char *pathname)
 	file_unlink(pathname);
 }
 
+int sys_opendir(const char *path)
+{
+	int fd = -1;
+	struct fs_fd* fd_file;
 
-              
+	if (fd == -1) {
+		fd = fd_new();
+		fd_file = fd_get(fd);
+		fd_file->opath = path;
+	}
+
+	fd_file = fd_get(fd);
+
+	int ret = file_opendir(fd_file, path);
+	fd_put(fd_file);
+	return ret;
+}
+
+int sys_readdir(int fd, const void *fileinfo)
+{
+	struct fs_fd* fd_file;
+	fd_file = fd_get(fd);
+	
+	int ret;
+	ret = file_readdir(fd_file, fileinfo);
+	return ret;
+}
 

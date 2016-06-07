@@ -123,6 +123,18 @@ int fat_unlink(/*struct fs_fd* file,*/ const char *pathname)
         ret = f_unlink(pathname);
 	return -ret;
 }
+int fat_opendir(struct fs_fd* file, const char* path)
+{
+	int ret;
+	ret = f_opendir(file->dirdata, path);
+	return -ret;
+}
+int fat_readdir(struct fs_fd* file, const void* fileinfo)
+{
+	int ret;
+	ret = f_readdir(file->dirdata, fileinfo);
+	return -ret;
+}
 
 struct fs_ops elmfat_ops = {
     .dev_name = "elmfat",
@@ -132,7 +144,9 @@ struct fs_ops elmfat_ops = {
     .close = fat_close,
     .read = fat_read,
     .write = fat_write,
-    .lseek = fat_lseek
+    .lseek = fat_lseek,
+    .opendir = fat_opendir,
+    .readdir = fat_readdir
 };
 
 

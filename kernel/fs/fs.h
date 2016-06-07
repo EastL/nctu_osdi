@@ -31,6 +31,7 @@ struct fs_fd
     off_t  	pos;			/* Current file position */
 
     void *data;					/* Specific file system data */
+    void *dirdata;
 };
 
 /* It's low level disk operators */
@@ -56,6 +57,8 @@ struct fs_ops
     
     //int (*getdents)	(struct fs_fd* fd, struct dirent* dirp, uint32_t count);
     int (*unlink)	(/*struct fs_fd* fs, */const char* pathname);
+    int (*opendir)	(struct fs_fd* file, const char* path);
+    int (*readdir)	(struct fs_fd* file, const void* fileinfo); 
 
 };
 
@@ -70,6 +73,9 @@ int file_write(struct fs_fd* fd, const void *buf, size_t len);
 
 int file_lseek(struct fs_fd* fd, off_t offset);
 int file_unlink(const char *path);
+
+int file_opendir(struct fs_fd* fd, const char* path);
+int file_readdir(struct fs_fd* fd, const void* fileinfo);
 
 struct fs_fd* fd_get(int fd);
 void fd_put(struct fs_fd* fd);

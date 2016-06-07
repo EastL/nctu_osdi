@@ -7,6 +7,7 @@
 
 /* Static file objects */
 FIL file_objs[FS_FD_MAX];
+DIR dir_objs[FS_FD_MAX];
 
 /* Static file system object */
 FATFS fat;
@@ -35,6 +36,7 @@ int fs_init()
         fd_table[i].type = 0;
         fd_table[i].ref_count = 0;
         fd_table[i].data = &file_objs[i];
+	fd_table[i].dirdata = &dir_objs[i];
         fd_table[i].fs = &fat_fs;
     }
     
@@ -96,6 +98,14 @@ int file_lseek(struct fs_fd* fd, off_t offset)
 int file_unlink(const char *path)
 {
 	return fat_fs.ops->unlink(path);
+}
+int file_opendir(struct fs_fd* fd, const char* path)
+{
+	return fat_fs.ops->opendir(fd, path);
+}
+int file_readdir(struct fs_fd* fd, const void* fileinfo)
+{
+	return fat_fs.ops->readdir(fd, fileinfo);
 }
 
 
