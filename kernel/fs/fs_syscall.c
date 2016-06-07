@@ -45,6 +45,8 @@ int sys_open(const char *file, int flags, int mode)
 	//printk("open ret:%d\n", ret);
 	//printk("flags:%d\n", flags);
 	//printk("sysflags:%d\n", mode);
+	if (ret < 0)
+		return ret;
 	
 	return fd;
 }
@@ -137,7 +139,10 @@ int sys_opendir(const char *path)
 
 	int ret = file_opendir(fd_file, path);
 	fd_put(fd_file);
-	return ret;
+
+	if (ret < 0)
+		return ret;
+	return fd;
 }
 
 int sys_readdir(int fd, const void *fileinfo)

@@ -44,6 +44,14 @@ void fs_test()
     static FILINFO fno;
     char* path = "/";
 
+    res = f_open(&fil, "hello1.txt", FA_CREATE_ALWAYS | FA_WRITE);
+    f_close(&fil);
+    res = f_open(&fil, "hello2.txt", FA_CREATE_ALWAYS | FA_WRITE);
+    f_close(&fil);
+    res = f_open(&fil, "hello3.txt", FA_CREATE_ALWAYS | FA_WRITE);
+    f_close(&fil);
+    res = f_open(&fil, "hello4.txt", FA_CREATE_ALWAYS | FA_WRITE);
+    f_close(&fil);
     res = f_opendir(&dir, path);                       /* Open the directory */
     if (res == FR_OK) {
         for (;;) {

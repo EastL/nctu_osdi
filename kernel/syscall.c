@@ -12,6 +12,7 @@
 */
 #include <inc/stdio.h>
 #include <inc/trap.h>
+#include <fat/ff.h>
 
 extern void sys_settextcolor(unsigned char forecolor, unsigned char backcolor); // kernel/screen.c
 extern void sys_cls(); // kernel/screen.c
@@ -41,6 +42,25 @@ void sys_sleep(uint32_t ticks)
 
 int sys_getdents(const char *path, const void *buf)
 {
+	int res;
+	int fd;
+	FILINFO dir;
+
+	fd = sys_opendir(path);
+	if (fd >= 0)
+	{
+		for(;;)
+		{
+			res = sys_readdir(fd, &dir);
+			if (res != 0 || dir.fname[0] == 0)
+				break;
+			else
+				printk("%d  %s\n", dir.fattrib, dir.fname);
+		}
+		return 0;
+	}
+	else
+		return -1;
 	
 }
 

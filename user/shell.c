@@ -376,7 +376,7 @@ void list_segment(int argc, char **argv)
 		path = argv[1];
 
 	int ret = -1;
-	//ret = getdents(path, buf);
+	ret = getdents(path, buf);
 	if (ret != 0)
 	{
 		cprintf("File or path not exist.\n");

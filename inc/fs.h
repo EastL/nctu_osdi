@@ -18,5 +18,5 @@ struct dirent
 	char d_name[DFS_PATH_MAX];		/* The null-terminated file name */
 };
 
-int getdents(unsigned int fd, struct dirent *dirp, unsigned int count);
+//int getdents(unsigned int fd, struct dirent *dirp, unsigned int count);
 #endif

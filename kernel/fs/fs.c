@@ -176,6 +176,7 @@ void fd_put(struct fs_fd* fd)
 	{
 		//memset(fd, 0, sizeof(struct fs_fd));
 		memset(fd->data, 0, sizeof(FIL));
+		memset(fd->dirdata, 0, sizeof(DIR));
 	}
 };
 
