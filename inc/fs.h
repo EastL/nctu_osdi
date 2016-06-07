@@ -16,6 +16,8 @@ struct dirent
 	uint8_t d_namlen;			/* The length of the not including the terminating null file name */
 	uint16_t d_reclen;			/* length of this record */
 	char d_name[DFS_PATH_MAX];		/* The null-terminated file name */
+	unsigned short time;
+	unsigned short date;
 };
 
 //int getdents(unsigned int fd, struct dirent *dirp, unsigned int count);

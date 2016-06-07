@@ -12,6 +12,7 @@
 */
 #include <inc/stdio.h>
 #include <inc/trap.h>
+#include <inc/fs.h>
 #include <fat/ff.h>
 
 extern void sys_settextcolor(unsigned char forecolor, unsigned char backcolor); // kernel/screen.c
@@ -40,27 +41,25 @@ void sys_sleep(uint32_t ticks)
 	sched_yield();
 }
 
-int sys_getdents(const char *path, const void *buf)
+int sys_getdents(int fd, const void *fileinfo)
 {
 	int res;
-	int fd;
 	FILINFO dir;
+	struct dirent *userdir;
+	userdir = fileinfo;
 
-	fd = sys_opendir(path);
-	if (fd >= 0)
-	{
-		for(;;)
-		{
-			res = sys_readdir(fd, &dir);
-			if (res != 0 || dir.fname[0] == 0)
-				break;
-			else
-				printk("%d  %s\n", dir.fattrib, dir.fname);
-		}
-		return 0;
-	}
-	else
+	res = sys_readdir(fd, &dir);
+	if (res != 0)
 		return -1;
+	else
+	{
+		userdir->d_type = dir.fattrib;
+		userdir->time = dir.ftime;
+		userdir->date = dir.fdate;
+		strncpy(userdir->d_name, dir.fname, 13);
+	}
+
+	return 0;
 	
 }
 
@@ -173,6 +172,9 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
 	break;
         case SYS_getdents:
 		retVal = sys_getdents(a1, a2);
+	break;
+	case SYS_opendir:
+		retVal = sys_opendir(a1);
         break;
 /*
 =======

@@ -376,15 +376,44 @@ void list_segment(int argc, char **argv)
 		path = argv[1];
 
 	int ret = -1;
-	ret = getdents(path, buf);
-	if (ret != 0)
+	int fd;
+	struct dirent dir;
+
+	fd = opendir(path);
+	if (fd >= 0)
+	{
+		for(;;)
+		{
+			ret = getdents(fd, &dir);
+			if (ret < 0 || dir.d_name[0] == 0)
+			{
+				if (ret < 0)
+				{
+					cprintf("File or path not exist.\n");
+					return;
+				}
+				else
+					break;
+			}
+			else
+			{
+				int flag = dir.d_type;
+				
+				if (flag & 0x01) cprintf("Read only ");
+				if (flag & 0x10) cprintf("Directory ");
+				if (flag & 0x20) cprintf("Archive ");
+
+				cprintf("%s\n", dir.d_name);
+			}
+		}
+		return 0;
+	}
+
+	else
 	{
 		cprintf("File or path not exist.\n");
 		return;
 	}
-
-	else
-		cprintf("%s\n", buf);
 }
 
 void shell()
