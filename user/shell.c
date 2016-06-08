@@ -22,6 +22,7 @@ int fs_seek_test(int argc, char **argv);
 int fs_speed_test(int argc, char **argv);
 void list_segment(int argc, char **argv);
 void mk_dir(int argc, char **argv);
+void remove_file(int argc, char **argv);
 void change_dir(int argc, char **argv);
 int filetest2(int argc, char **argv);
 int filetest3(int argc, char **argv);
@@ -42,6 +43,7 @@ struct Command commands[] = {
   { "ls", "List segment", list_segment},
   { "mkdir", "Make directory", mk_dir},
   { "cd", "Change directory", change_dir},
+  { "rm", "remove file", remove_file},
   { "filetest2", "Open test", filetest2},
   { "filetest3", "Large block test", filetest3},
   { "filetest4", "Error test", filetest4},
@@ -618,6 +620,30 @@ void change_dir(int argc, char **argv)
 
 	int ret = -1;
 	ret = chdir(path);
+	if (ret < 0)
+	{
+		cprintf("No such file or directory\n");
+		return;
+	}
+	return;
+	
+}
+
+void remove_file(int argc, char **argv)
+{
+	char buf[BUFSIZE];
+	char *path;
+	if (argv[1] == NULL)
+	{
+		cprintf("rm: missing operand\n");
+		return;
+	}
+
+	else
+		path = argv[1];
+
+	int ret = -1;
+	ret = unlink(path);
 	if (ret < 0)
 	{
 		cprintf("No such file or directory\n");
