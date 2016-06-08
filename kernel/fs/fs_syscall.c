@@ -23,23 +23,21 @@ int sys_open(const char *file, int flags, int mode)
 	struct fs_fd* fd_file;
 	extern struct fs_fd fd_table[FS_FD_MAX];
 	int fd = -1;
-/*
+
 	int i;
 	for (i = 0; i < FS_FD_MAX; i++) {
-		if (fd_table[i].opath == file) {
-			fd = i;
-			fd_file = &fd_table[i];
-			break;
+		if (fd_table[i].opath == file && fd_table[i].flags == flags) {
+			return i;
 		}
 	}
-*/	
+	
 	if (fd == -1) {
 		fd = fd_new();
 		fd_file = fd_get(fd);
 		fd_file->opath = file;
 	}
 
-	extern FIL file_objs[FS_FD_MAX];
+	//extern FIL file_objs[FS_FD_MAX];
 	int ret = file_open(fd_file, file, flags);
 	fd_put(fd_file);
 
@@ -53,7 +51,10 @@ int sys_open(const char *file, int flags, int mode)
 	//printk("flags:%d\n", flags);
 	//printk("sysflags:%d\n", mode);
 	if (ret < 0)
+	{
+		sys_close(fd);
 		return ret;
+	}
 	
 	return fd;
 }
@@ -69,6 +70,7 @@ int sys_close(int fd)
 	//clear size and pos
 	fd_file->size = 0;
 	fd_file->pos = 0;
+	fd_file->opath = 0;
 
 	int ret;
 	ret = file_close(fd_file);
