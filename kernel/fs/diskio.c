@@ -106,10 +106,12 @@ DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void* buff)
     /* TODO */
     switch(cmd) {
 	case GET_SECTOR_COUNT:
-	    *retVal = ide_devices[DISK_ID].Size;
+	    *retVal = ide_read(ATA_PRIMARY, ATA_REG_SECCOUNT0);
+	    //printk("channels0 size:%d\n", ide_read(ATA_PRIMARY, ATA_REG_SECCOUNT0));
+	    //printk("channels1 size:%d\n", ide_read(ATA_PRIMARY, ATA_REG_SECCOUNT1));
 	    break;
 
-	case GET_BLOCK_SIZE:
+	case GET_SECTOR_SIZE:
 	    *retVal = 512;
 	    break;
     }

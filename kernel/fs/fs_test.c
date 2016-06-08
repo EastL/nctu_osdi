@@ -43,6 +43,8 @@ void fs_test()
     UINT i;
     static FILINFO fno;
     char* path = "/";
+    char large[4000] = {0};
+    int by;
 
     res = f_open(&fil, "hello1.txt", FA_CREATE_ALWAYS | FA_WRITE);
     f_close(&fil);
@@ -50,7 +52,37 @@ void fs_test()
     f_close(&fil);
     res = f_open(&fil, "hello3.txt", FA_CREATE_ALWAYS | FA_WRITE);
     f_close(&fil);
-    res = f_open(&fil, "hello4.txt", FA_CREATE_ALWAYS | FA_WRITE);
+    res = f_open(&fil, "hello4.txt", FA_CREATE_ALWAYS | FA_WRITE | FA_READ);
+    for (i = 0; i < 4000; i++)
+    {
+	large[i] = i;
+    }
+    int ret;
+    f_write(&fil, large, 4000, &by);
+    printk("write:%d ", by);
+    printk("%d\n", large[513]);
+    ret = f_lseek(&fil, 0);
+    printk("seek:%d\n", ret);
+    for (i = 0; i < 4000; i++)
+    {
+	large[i] = 0;
+    }
+    printk("%d\n", large[513]);
+    ret = f_read(&fil, large, 4000, &by);
+    printk("read:%d %d \n", ret, by);
+    printk("%d\n", large[510]);
+    printk("%d\n", large[511]);
+    printk("%d\n", large[512]);
+    printk("%d\n", large[513]);
+    printk("%d\n", large[514]);
+    for (i = 1536; i < 2048; i++)
+    {
+	printk("%d ", large[i]);
+	//if((large[i]&0xFF) != (i&0xFF))
+	//	printk("Failed at %d, read %x but want %d\n", i, large[i], i&0xFF);
+    }
+    
+    i = 0;
     f_close(&fil);
     res = f_opendir(&dir, path);                       /* Open the directory */
     if (res == FR_OK) {
@@ -64,7 +96,7 @@ void fs_test()
                 //path[i] = 0;
                 printk("hiXD\n");
             } else {                                       /* It is a file. */
-                printk("%s/%s\n", path, fno.fname);
+                //printk("%s/%s\n", path, fno.fname);
             }
         }
         f_closedir(&dir);
