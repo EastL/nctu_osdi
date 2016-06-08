@@ -188,6 +188,12 @@ int file_readdir(struct fs_fd* fd, const void* fileinfo)
 	ret = fat_fs.ops->readdir(fd, fileinfo);
 	return mapposix(ret);
 }
+int file_mkdir(const char* path)
+{
+	int ret;
+	ret = fat_fs.ops->mkdir(path);
+	return mapposix(ret);
+}
 
 
 /**

@@ -21,6 +21,7 @@ int filetest(int argc, char **argv);
 int fs_seek_test(int argc, char **argv);
 int fs_speed_test(int argc, char **argv);
 void list_segment(int argc, char **argv);
+void mk_dir(int argc, char **argv);
 int filetest2(int argc, char **argv);
 int filetest3(int argc, char **argv);
 int filetest4(int argc, char **argv);
@@ -38,6 +39,7 @@ struct Command commands[] = {
   { "fs_seek_test", "Test seek file", fs_seek_test },
   { "fs_speed_test", "Test R/W speed", fs_speed_test},
   { "ls", "List segment", list_segment},
+  { "mkdir", "Make directory", mk_dir},
   { "filetest2", "Open test", filetest2},
   { "filetest3", "Large block test", filetest3},
   { "filetest4", "Error test", filetest4},
@@ -577,6 +579,29 @@ void list_segment(int argc, char **argv)
 		cprintf("File or path not exist.\n");
 		return;
 	}
+}
+
+void mk_dir(int argc, char **argv)
+{
+	char buf[BUFSIZE];
+	char *path;
+	if (argv[1] == NULL)
+	{
+		cprintf("mkdir: missing operand\n");
+		return;
+	}
+
+	else
+		path = argv[1];
+
+	int ret = -1;
+	ret = mkdir(path);
+	if (ret == -STATUS_EEXIST)
+	{
+		cprintf("mkdir: cannot create directory `Documents/': File exists\n");
+		return;
+	}
+	return;
 }
 
 void shell()

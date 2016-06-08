@@ -142,6 +142,12 @@ int fat_readdir(struct fs_fd* file, const void* fileinfo)
 	ret = f_readdir(file->dirdata, fileinfo);
 	return -ret;
 }
+int fat_mkdir(const char* path)
+{
+	int ret;
+	ret = f_mkdir(path);
+	return -ret;
+}
 
 struct fs_ops elmfat_ops = {
     .dev_name = "elmfat",
@@ -154,7 +160,8 @@ struct fs_ops elmfat_ops = {
     .unlink = fat_unlink,
     .lseek = fat_lseek,
     .opendir = fat_opendir,
-    .readdir = fat_readdir
+    .readdir = fat_readdir,
+    .mkdir = fat_mkdir
 };
 
 

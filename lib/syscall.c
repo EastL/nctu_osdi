@@ -57,6 +57,7 @@ SYSCALL_3ARG(lseek, off_t, int, off_t, int)
 SYSCALL_1ARG(unlink, int, const char *)
 SYSCALL_2ARG(getdents, int, int, const void *)
 SYSCALL_1ARG(opendir, int, const char *)
+SYSCALL_1ARG(mkdir, int, const char *)
 
 
 /////////////////////////////

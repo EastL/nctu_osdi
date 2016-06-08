@@ -26,6 +26,7 @@ enum {
     SYS_unlink,
     SYS_getdents,
     SYS_opendir,
+    SYS_mkdir,
 
 	NSYSCALLS
 };
@@ -63,4 +64,5 @@ int sys_unlink(const char *pathname);
 int sys_getdents(int fd, const void *fileinfo);
 int sys_opendir(const char *path);
 int sys_readdir(int fd, const void *fileinfo);
+int sys_mkdir(const char *path);
 #endif

@@ -177,3 +177,8 @@ int sys_readdir(int fd, const void *fileinfo)
 	return ret;
 }
 
+int sys_mkdir(const char *path)
+{
+	int ret = file_mkdir(path);
+	return ret;
+}

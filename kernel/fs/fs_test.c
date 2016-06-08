@@ -103,6 +103,10 @@ void fs_test()
         }
         f_closedir(&dir);
     }
+    ret = f_mkdir("aaa");
+    printk("mkdir:%d\n", ret);
+    ret = f_mkdir("aaa");
+    printk("mkdir:%d\n", ret);
 
     /* Unregister work area */
     //f_mount(0, "", 0);

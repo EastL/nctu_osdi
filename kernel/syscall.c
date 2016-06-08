@@ -176,6 +176,9 @@ int32_t do_syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, ui
 	case SYS_opendir:
 		retVal = sys_opendir(a1);
         break;
+	case SYS_mkdir:
+		retVal = sys_mkdir(a1);
+        break;
 /*
 =======
     int32_t retVal = -1;
