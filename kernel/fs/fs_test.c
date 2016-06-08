@@ -1,4 +1,4 @@
-#include "ff.h"
+#include "fat/ff.h"
 
 /* Low level I/O API test */
 void fs_test()
@@ -105,6 +105,10 @@ void fs_test()
     }
     ret = f_mkdir("aaa");
     printk("mkdir:%d\n", ret);
+
+    ret = f_chdir("/aaa");
+    printk("chdir:%d\n", ret);
+
     ret = f_mkdir("aaa");
     printk("mkdir:%d\n", ret);
 

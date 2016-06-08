@@ -58,6 +58,7 @@ SYSCALL_1ARG(unlink, int, const char *)
 SYSCALL_2ARG(getdents, int, int, const void *)
 SYSCALL_1ARG(opendir, int, const char *)
 SYSCALL_1ARG(mkdir, int, const char *)
+SYSCALL_1ARG(chdir, int, const char *)
 
 
 /////////////////////////////

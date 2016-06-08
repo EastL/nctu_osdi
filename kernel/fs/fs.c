@@ -194,6 +194,12 @@ int file_mkdir(const char* path)
 	ret = fat_fs.ops->mkdir(path);
 	return mapposix(ret);
 }
+int file_chdir(const char* path)
+{
+	int ret;
+	ret = fat_fs.ops->chdir(path);
+	return mapposix(ret);
+}
 
 
 /**

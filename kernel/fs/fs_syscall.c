@@ -182,3 +182,9 @@ int sys_mkdir(const char *path)
 	int ret = file_mkdir(path);
 	return ret;
 }
+
+int sys_chdir(const char *path)
+{
+	int ret = file_chdir(path);
+	return ret;
+}

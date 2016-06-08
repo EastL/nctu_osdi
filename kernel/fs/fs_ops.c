@@ -148,6 +148,12 @@ int fat_mkdir(const char* path)
 	ret = f_mkdir(path);
 	return -ret;
 }
+int fat_chdir(const char* path)
+{
+	int ret;
+	ret = f_chdir(path);
+	return -ret;
+}
 
 struct fs_ops elmfat_ops = {
     .dev_name = "elmfat",
@@ -161,7 +167,8 @@ struct fs_ops elmfat_ops = {
     .lseek = fat_lseek,
     .opendir = fat_opendir,
     .readdir = fat_readdir,
-    .mkdir = fat_mkdir
+    .mkdir = fat_mkdir,
+    .chdir = fat_chdir
 };
 
 

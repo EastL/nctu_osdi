@@ -60,6 +60,7 @@ struct fs_ops
     int (*opendir)	(struct fs_fd* file, const char* path);
     int (*readdir)	(struct fs_fd* file, const void* fileinfo); 
     int (*mkdir)	(const char* path);
+    int (*chdir)	(const char* path);
 
 };
 
