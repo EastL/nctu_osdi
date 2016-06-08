@@ -77,11 +77,13 @@ void fs_test()
     printk("%d\n", large[514]);
     for (i = 1536; i < 2048; i++)
     {
-	printk("%d ", large[i]);
+	//printk("%d ", large[i]);
 	//if((large[i]&0xFF) != (i&0xFF))
 	//	printk("Failed at %d, read %x but want %d\n", i, large[i], i&0xFF);
     }
     
+    ret = f_unlink("ello1.txt");
+    printk("unlink:%d\n", ret);
     i = 0;
     f_close(&fil);
     res = f_opendir(&dir, path);                       /* Open the directory */
