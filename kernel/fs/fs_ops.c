@@ -59,7 +59,11 @@ int fat_open(struct fs_fd* file)
 	if (flag & O_WRONLY)  open_mode |= FA_WRITE;
 	if (flag & O_RDWR) open_mode |= (FA_READ | FA_WRITE);
 	if (flag & O_ACCMODE) open_mode |= 0;
-	if (flag & O_CREAT) open_mode |= FA_OPEN_ALWAYS;
+	if (flag & O_CREAT) 
+	{
+		if (!(flag & O_TRUNC))
+			open_mode |= FA_CREATE_NEW;
+	}
 	if (flag & O_EXCL) open_mode |= 0;
 	if (flag & O_TRUNC || flag & O_APPEND) open_mode |= FA_CREATE_ALWAYS;
 

@@ -61,6 +61,8 @@ int sys_open(const char *file, int flags, int mode)
 int sys_close(int fd)
 {
 /* TODO */
+	if (fd >= FS_FD_MAX)
+		return -STATUS_EINVAL;
 	struct fs_fd* fd_file;
 	fd_file = fd_get(fd);
 	
@@ -80,6 +82,10 @@ int sys_close(int fd)
 int sys_read(int fd, void *buf, size_t len)
 {
 /* TODO */
+	if (len < 0 || buf == NULL)
+		return -STATUS_EINVAL;
+	if (fd >= FS_FD_MAX)
+		return -STATUS_EBADF;
 	struct fs_fd* fd_file;
 	fd_file = fd_get(fd);
 	int ret = file_read(fd_file, buf, len);
@@ -92,6 +98,10 @@ int sys_read(int fd, void *buf, size_t len)
 int sys_write(int fd, const void *buf, size_t len)
 {
 /* TODO */
+	if (len < 0 || buf == NULL)
+		return -STATUS_EINVAL;
+	if (fd >= FS_FD_MAX)
+		return -STATUS_EBADF;
 	struct fs_fd* fd_file;
 	fd_file = fd_get(fd);
 
@@ -104,6 +114,7 @@ int sys_write(int fd, const void *buf, size_t len)
 	size_t size = object->obj.objsize;
 	fd_file->size = size;
 
+	//printk("%d\n", ret);
 	return ret;
 }
 
@@ -111,6 +122,8 @@ int sys_write(int fd, const void *buf, size_t len)
 off_t sys_lseek(int fd, off_t offset, int whence)
 {
 /* TODO */
+	if (fd >= FS_FD_MAX || offset < 0 || whence < 0)
+		return -STATUS_EINVAL;
 	struct fs_fd* fd_file;
 	fd_file = fd_get(fd);
 
@@ -154,6 +167,8 @@ int sys_opendir(const char *path)
 
 int sys_readdir(int fd, const void *fileinfo)
 {
+	if (fd >= FS_FD_MAX)
+		return -STATUS_EINVAL;
 	struct fs_fd* fd_file;
 	fd_file = fd_get(fd);
 	
