@@ -572,7 +572,7 @@ void list_segment(int argc, char **argv)
 				if (flag & 0x10) cprintf("Directory ");
 				if (flag & 0x20) cprintf("Archive ");
 
-				cprintf("%s\n", dir.d_name);
+				cprintf("%s %d\n", dir.d_name, dir.d_reclen);
 			}
 		}
 		return 0;

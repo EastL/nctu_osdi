@@ -2,7 +2,7 @@
 #define K_FS_H
 #include <inc/types.h>
 
-#define FS_FD_MAX 50
+#define FS_FD_MAX 10
 
 /* Mounted file system */
 struct fs_dev

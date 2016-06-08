@@ -56,6 +56,7 @@ int sys_getdents(int fd, const void *fileinfo)
 		userdir->d_type = dir.fattrib;
 		userdir->time = dir.ftime;
 		userdir->date = dir.fdate;
+		userdir->d_reclen = dir.fsize;
 		strncpy(userdir->d_name, dir.fname, 13);
 	}
 
