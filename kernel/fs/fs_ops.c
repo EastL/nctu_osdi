@@ -54,6 +54,7 @@ int fat_open(struct fs_fd* file)
 {
 	unsigned char open_mode;
 	uint32_t flag = file->flags;
+	FIL *object;
 	open_mode = 0;
 	if (flag == 0) open_mode |= (/*FA_OPEN_EXISTING |*/ FA_READ);
 	if (flag & O_WRONLY)  open_mode |= FA_WRITE;
@@ -65,9 +66,16 @@ int fat_open(struct fs_fd* file)
 			open_mode |= FA_CREATE_NEW;
 	}
 	if (flag & O_EXCL) open_mode |= 0;
-	if (flag & O_TRUNC || flag & O_APPEND) open_mode |= FA_CREATE_ALWAYS;
+	if (flag & O_TRUNC) open_mode |= FA_CREATE_ALWAYS;
 
 	int ret = f_open((file->data), (file->opath), open_mode);
+	if (flag & O_APPEND)
+	{
+		object = file->data;
+		int size = object->obj.objsize;
+		fat_lseek(file, size);
+	}
+	
 	return -ret;
 	/*switch(file->flags) {
 		case O_RDONLY:
